@@ -39,7 +39,7 @@ body{
   border-bottom:1px solid #222;
 }
 .back-btn {
-    font-size: 1.8rem; /* বাটন মোটা ও বড় করা হয়েছে */
+    font-size: 1.8rem;
     font-weight: 900;
     cursor: pointer;
     color: #fff;
@@ -58,16 +58,17 @@ body{
 }
 video{width:100%;height:100%; object-fit: contain;}
 
-/* প্লেয়ারের ভেতর ইমেজ (Watermark) */
+/* প্লেয়ারের ভেতর ইমেজ (Watermark) - আরও উপরে তোলা হয়েছে */
 .player-image {
     position: absolute;
-    bottom: 10px;
-    right: 10px;
-    width: 60px; /* প্রয়োজন অনুযায়ী সাইজ পরিবর্তন করতে পারেন */
+    bottom: 40px; /* ১০ থেকে বাড়িয়ে ৪০ করা হয়েছে */
+    right: 15px;
+    width: 70px; 
     height: auto;
     z-index: 5;
     pointer-events: none;
-    opacity: 0.8;
+    opacity: 0.9;
+    background: transparent; /* ব্যাকগ্রাউন্ড রিমুভ নিশ্চিত করতে */
 }
 
 /* লোডিং অ্যানিমেশন */
@@ -82,7 +83,7 @@ video{width:100%;height:100%; object-fit: contain;}
     border-top: 5px solid var(--accent);
     border-radius: 50%;
     animation: spin 1s linear infinite;
-    display: none; /* ডিফল্টভাবে বন্ধ */
+    display: none;
     z-index: 10;
 }
 @keyframes spin { 0% { transform: translate(-50%, -50%) rotate(0deg); } 100% { transform: translate(-50%, -50%) rotate(360deg); } }
@@ -90,7 +91,7 @@ video{width:100%;height:100%; object-fit: contain;}
 .controls{
   position:absolute;
   inset:0;
-  background:rgba(0,0,0,.6);
+  background:rgba(0,0,0,.5);
   display:flex;
   flex-direction: column;
   justify-content:center;
@@ -101,7 +102,7 @@ video{width:100%;height:100%; object-fit: contain;}
   z-index: 15;
 }
 .controls.show{ opacity:1; visibility: visible; }
-.mid-ctrl i{ font-size:2.5rem; cursor:pointer; margin: 0 15px;}
+.mid-ctrl i{ font-size:2.5rem; cursor:pointer; margin: 0 15px; color: #fff;}
 
 /* INFO SECTION */
 .info{
@@ -164,7 +165,7 @@ video{width:100%;height:100%; object-fit: contain;}
 
 <div class="player-wrap" id="playerArea">
   <div class="loader" id="videoLoader"></div>
-  <img src="https://i.postimg.cc/mkZYWRbm/20260120-055944-removebg-preview.png" class="player-image" alt="logo">
+  <img src="https://i.postimg.cc/2SHhhg7v/20260203-004053.png" class="player-image" alt="logo">
   <video id="video" playsinline></video>
   
   <div class="controls" id="controls">
