@@ -95,12 +95,16 @@ video{width:100%;height:100%}
   text-align:center;
   font-size:.75rem;
   cursor:pointer;
+  color: #bbb;
 }
 .actions i{
   display:block;
   font-size:1.3rem;
   margin-bottom:5px;
+  color: #fff;
 }
+.actions div.active-filter { color: var(--accent); }
+.actions div.active-filter i { color: var(--accent); }
 
 /* LIST */
 .list{
@@ -130,7 +134,8 @@ video{width:100%;height:100%}
 .name{flex:1}
 .star{
   font-size:1.2rem;
-  color:#777;
+  color:#444;
+  transition: .2s;
 }
 .star.active{color:var(--accent)}
 </style>
@@ -138,9 +143,9 @@ video{width:100%;height:100%}
 
 <body>
 
-<div class="header">
-  <i class="fas fa-arrow-left" onclick="history.back()"></i>
-  <span>Live Stream</span>
+<div class="header" onclick="showAllChannels()">
+  <i class="fas fa-arrow-left" onclick="history.back(); event.stopPropagation();"></i>
+  <span id="pageLabel">Live Stream</span>
 </div>
 
 <div class="player-wrap" id="playerArea">
@@ -164,7 +169,7 @@ video{width:100%;height:100%}
 
   <div class="actions">
     <div onclick="shareChannel()"><i class="fas fa-share-alt"></i>Share</div>
-    <div><i class="fas fa-star"></i>My List</div>
+    <div id="myListTab" onclick="filterFavorites()"><i class="fas fa-star"></i>My List</div>
     <div onclick="window.open('https://t.me/yourchannel')"><i class="fab fa-telegram"></i>Telegram</div>
   </div>
 </div>
@@ -175,7 +180,9 @@ video{width:100%;height:100%}
 const video=document.getElementById('video');
 const controls=document.getElementById('controls');
 const pp=document.getElementById('pp');
+const listArea = document.getElementById('list');
 let hls=new Hls(),hideT;
+let allChannels = []; // সব চ্যানেল স্টোর করার জন্য
 
 /* SHOW CONTROLS */
 playerArea.onclick=()=>{
@@ -191,78 +198,121 @@ function togglePlay(){
 }
 function seek(t){video.currentTime+=t}
 
-/* FAVORITE */
-const KEY="my_channels";
+/* FAVORITE LOGIC */
+const KEY="my_fav_channels";
 const getFav=()=>JSON.parse(localStorage.getItem(KEY)||"[]");
 const saveFav=d=>localStorage.setItem(KEY,JSON.stringify(d));
 
-function toggleFav(name,icon){
-  let f=getFav();
-  if(f.includes(name)){
-    f=f.filter(x=>x!==name);
-    icon.classList.remove('active');
-  }else{
-    f.push(name);
-    icon.classList.add('active');
+function toggleFav(channel, iconEl){
+  let favs = getFav();
+  // চ্যানেল অবজেক্টের URL দিয়ে চেক করা ভালো কারণ নাম এক হতে পারে
+  const index = favs.findIndex(x => x.url === channel.url);
+  
+  if(index > -1){
+    favs.splice(index, 1);
+    iconEl.classList.remove('active');
+  } else {
+    favs.push(channel);
+    iconEl.classList.add('active');
   }
-  saveFav(f);
+  saveFav(favs);
+}
+
+/* FILTER LISTS */
+function filterFavorites() {
+    const favs = getFav();
+    document.getElementById('pageLabel').innerText = "My List";
+    document.getElementById('myListTab').classList.add('active-filter');
+    render(favs);
+}
+
+function showAllChannels() {
+    document.getElementById('pageLabel').innerText = "Live Stream";
+    document.getElementById('myListTab').classList.remove('active-filter');
+    render(allChannels);
 }
 
 /* SHARE */
 function shareChannel(){
-  navigator.share?
-  navigator.share({title:title.innerText,url:location.href}):
-  (navigator.clipboard.writeText(location.href),alert("Link copied"));
+  if(navigator.share){
+    navigator.share({title:title.innerText,url:location.href});
+  } else {
+    navigator.clipboard.writeText(location.href);
+    alert("Link copied to clipboard");
+  }
 }
 
 /* LOAD PLAYLIST */
 const url=new URLSearchParams(location.search).get('playlist');
-fetch(url).then(r=>r.text()).then(data=>{
-  const lines=data.split('\n');
-  let arr=[],c={};
-  lines.forEach(l=>{
-    if(l.startsWith('#EXTINF')){
-      c.name=l.split(',')[1]||"Channel";
-      const m=l.match(/tvg-logo="([^"]*)"/);
-      c.logo=m?m[1]:"https://i.imgur.com/8Qf6Y0L.png";
-    }else if(l.startsWith('http')){
-      c.url=l.trim();arr.push({...c});c={};
-    }
-  });
-  count.innerText="Total: "+arr.length;
-  render(arr);
-});
+if(url){
+    fetch(url).then(r=>r.text()).then(data=>{
+      const lines=data.split('\n');
+      let arr=[],c={};
+      lines.forEach(l=>{
+        if(l.startsWith('#EXTINF')){
+          c.name=l.split(',')[1]||"Channel";
+          const m=l.match(/tvg-logo="([^"]*)"/);
+          c.logo=m?m[1]:"https://i.imgur.com/8Qf6Y0L.png";
+        }else if(l.trim().startsWith('http')){
+          c.url=l.trim();arr.push({...c});c={};
+        }
+      });
+      allChannels = arr; // গ্লোবাল ভেরিয়েবলে সেভ রাখলাম
+      render(allChannels);
+    }).catch(() => {
+        listArea.innerHTML = "<p style='text-align:center; padding:20px;'>Failed to load playlist.</p>";
+    });
+}
 
 function render(arr){
-  const fav=getFav();
+  const favs = getFav();
+  listArea.innerHTML = ""; // আগের লিস্ট ক্লিয়ার করা
+  document.getElementById('count').innerText = "Total: " + arr.length;
+
+  if(arr.length === 0) {
+      listArea.innerHTML = "<p style='text-align:center; color:#555; padding:20px;'>No channels found.</p>";
+      return;
+  }
+
   arr.forEach((c,i)=>{
+    const isFav = favs.some(x => x.url === c.url);
     const d=document.createElement('div');
     d.className="row";
     d.innerHTML=`
       <img class="logo" src="${c.logo}" onerror="this.src='https://i.imgur.com/8Qf6Y0L.png'">
       <div class="name">${c.name}</div>
-      <i class="fas fa-star star ${fav.includes(c.name)?'active':''}"></i>
+      <i class="fas fa-star star ${isFav?'active':''}"></i>
     `;
+    
     d.onclick=()=>{
       play(c.url,c.name);
       document.querySelectorAll('.row').forEach(x=>x.classList.remove('active'));
       d.classList.add('active');
     };
+
     d.querySelector('.star').onclick=e=>{
-      e.stopPropagation();
-      toggleFav(c.name,e.target);
+      e.stopPropagation(); // রো এর ক্লিক ইভেন্ট বন্ধ করার জন্য
+      toggleFav(c, e.target);
     };
-    list.appendChild(d);
-    if(i===0)d.click();
+    
+    listArea.appendChild(d);
+    
+    // শুধু প্রথম লোডের সময় প্রথম চ্যানেল প্লে হবে
+    if(i===0 && document.getElementById('pageLabel').innerText === "Live Stream" && !video.src) d.click();
   });
 }
 
 function play(url,name){
   title.innerText=name;
-  hls.destroy();hls=new Hls();
-  hls.loadSource(url);
-  hls.attachMedia(video);
-  hls.on(Hls.Events.MANIFEST_PARSED,()=>video.play());
+  if(Hls.isSupported()){
+      hls.destroy(); hls=new Hls();
+      hls.loadSource(url);
+      hls.attachMedia(video);
+      hls.on(Hls.Events.MANIFEST_PARSED,()=>video.play());
+  } else {
+      video.src = url;
+      video.play();
+  }
   pp.className="fas fa-pause";
 }
 </script>
