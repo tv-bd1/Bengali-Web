@@ -39,7 +39,7 @@ body{
   border-bottom:1px solid #222;
 }
 .back-btn {
-    font-size: 1.8rem;
+    font-size: 1.8rem; /* বাটন মোটা ও বড় করা হয়েছে */
     font-weight: 900;
     cursor: pointer;
     color: #fff;
@@ -58,40 +58,10 @@ body{
 }
 video{width:100%;height:100%; object-fit: contain;}
 
-/* প্লেয়ারের ভেতর ইমেজ (Watermark) - আরও উপরে তোলা হয়েছে */
-.player-image {
-    position: absolute;
-    bottom: 40px; /* ১০ থেকে বাড়িয়ে ৪০ করা হয়েছে */
-    right: 15px;
-    width: 70px; 
-    height: auto;
-    z-index: 5;
-    pointer-events: none;
-    opacity: 0.9;
-    background: transparent; /* ব্যাকগ্রাউন্ড রিমুভ নিশ্চিত করতে */
-}
-
-/* লোডিং অ্যানিমেশন */
-.loader {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 50px;
-    height: 50px;
-    border: 5px solid #333;
-    border-top: 5px solid var(--accent);
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    display: none;
-    z-index: 10;
-}
-@keyframes spin { 0% { transform: translate(-50%, -50%) rotate(0deg); } 100% { transform: translate(-50%, -50%) rotate(360deg); } }
-
 .controls{
   position:absolute;
   inset:0;
-  background:rgba(0,0,0,.5);
+  background:rgba(0,0,0,.6);
   display:flex;
   flex-direction: column;
   justify-content:center;
@@ -99,18 +69,29 @@ video{width:100%;height:100%; object-fit: contain;}
   opacity:0;
   visibility: hidden;
   transition:.2s;
-  z-index: 15;
 }
 .controls.show{ opacity:1; visibility: visible; }
-.mid-ctrl i{ font-size:2.5rem; cursor:pointer; margin: 0 15px; color: #fff;}
+.mid-ctrl{ display:flex; gap:35px; align-items:center;}
+.mid-ctrl i{ font-size:2.5rem; cursor:pointer;}
 
-/* INFO SECTION */
+/* INFO SECTION WITH MINI LOGO */
 .info{
   padding:15px;
   display:flex;
   justify-content:space-between;
+  align-items: center;
+}
+.channel-meta { display: flex; align-items: center; gap: 12px; }
+.mini-logo {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 1px solid #333;
+    object-fit: contain;
+    background: #111;
 }
 .info h3 { font-size: 1.1rem; }
+.info small { color: #888; display: block; font-size: 0.8rem; }
 .badge{
   background:#111;
   padding:4px 12px;
@@ -130,6 +111,7 @@ video{width:100%;height:100%; object-fit: contain;}
 }
 .actions div{ text-align:center; font-size:.85rem; cursor:pointer; color: #fff; flex: 1; }
 .actions i{ display:block; font-size:1.6rem; margin-bottom:8px; }
+.actions div.active-filter { color: var(--fav); }
 
 /* LIST */
 .list{ flex:1; overflow-y:auto; padding:15px; }
@@ -144,7 +126,7 @@ video{width:100%;height:100%; object-fit: contain;}
   cursor:pointer;
 }
 .row.active{ background: linear-gradient(90deg, #121212 0%, #0d2233 100%); }
-.logo-circle{ width:45px; height:45px; border-radius:50%; overflow: hidden; background: #000; flex-shrink: 0; border: 1px solid #333;}
+.logo-circle{ width:45px; height:45px; border-radius:50%; overflow: hidden; border: 1px solid #333; background: #000; flex-shrink: 0;}
 .logo-circle img{ width:100%; height:100%; object-fit: contain; }
 .name{ flex:1; font-size: 0.95rem; }
 .star{ font-size:1.3rem; color:#444; padding: 5px; transition: 0.3s;}
@@ -164,10 +146,7 @@ video{width:100%;height:100%; object-fit: contain;}
 </div>
 
 <div class="player-wrap" id="playerArea">
-  <div class="loader" id="videoLoader"></div>
-  <img src="https://i.postimg.cc/2SHhhg7v/20260203-004053.png" class="player-image" alt="logo">
   <video id="video" playsinline></video>
-  
   <div class="controls" id="controls">
     <div class="mid-ctrl">
         <i class="fas fa-backward" onclick="event.stopPropagation(); seek(-10)"></i>
@@ -179,9 +158,12 @@ video{width:100%;height:100%; object-fit: contain;}
 
 <div class="fixed">
   <div class="info">
-    <div>
-      <h3 id="title">Select Channel</h3>
-      <small style="color: #888;">Watch this channel live streaming 24/7.</small>
+    <div class="channel-meta">
+      <img id="currentLogo" class="mini-logo" src="https://i.imgur.com/8Qf6Y0L.png" alt="logo">
+      <div>
+        <h3 id="title">Select Channel</h3>
+        <small>Watching live streaming 24/7</small>
+      </div>
     </div>
     <div class="badge" id="count">Total: 0</div>
   </div>
@@ -198,7 +180,7 @@ video{width:100%;height:100%; object-fit: contain;}
 <script>
 const video=document.getElementById('video');
 const controls=document.getElementById('controls');
-const loader=document.getElementById('videoLoader');
+const pp=document.getElementById('pp');
 const listArea = document.getElementById('list');
 let hls=new Hls(), allChannels = [], currentUrl = "";
 
@@ -210,16 +192,12 @@ function updateClock() {
 }
 setInterval(updateClock, 1000); updateClock();
 
-/* ২. প্লেয়ার কন্ট্রোল ও লোডিং */
+/* ২. কন্ট্রোল ও প্লে লজিক */
 playerArea.onclick = () => controls.classList.toggle('show');
 
-video.onwaiting = () => { loader.style.display = "block"; };
-video.onplaying = () => { loader.style.display = "none"; };
-video.onloadstart = () => { loader.style.display = "block"; };
-
 function togglePlay(){
-  if(video.paused){ video.play(); document.getElementById('pp').className="fas fa-pause"; }
-  else{ video.pause(); document.getElementById('pp').className="fas fa-play"; }
+  if(video.paused){ video.play(); pp.className="fas fa-pause"; }
+  else{ video.pause(); pp.className="fas fa-play"; }
 }
 function seek(t){ video.currentTime+=t; }
 
@@ -228,7 +206,7 @@ function handleBack() {
     else history.back();
 }
 
-/* ৩. ডাটা লোডিং ও রেন্ডার */
+/* ৩. ডাটা লোডিং */
 const url=new URLSearchParams(location.search).get('playlist');
 if(url){
     fetch(url).then(r=>r.text()).then(data=>{
@@ -262,7 +240,7 @@ function render(arr, isFavView){
       <i class="${isFav?'fas':'far'} fa-star star ${isFav?'active':''}"></i>
     `;
     d.onclick=()=>{
-      play(c.url,c.name);
+      play(c.url, c.name, c.logo);
       document.querySelectorAll('.row').forEach(x=>x.classList.remove('active'));
       d.classList.add('active');
     };
@@ -271,10 +249,10 @@ function render(arr, isFavView){
   });
 }
 
-function play(url,name){
+function play(url, name, logo){
   currentUrl = url;
   document.getElementById('title').innerText=name;
-  loader.style.display = "block";
+  document.getElementById('currentLogo').src=logo; // মিনি লোগো আপডেট
   if(Hls.isSupported()){
       hls.destroy(); hls=new Hls();
       hls.loadSource(url);
