@@ -21,25 +21,14 @@
 body{ background:var(--bg); color:var(--text); height:100vh; display:flex; flex-direction:column; overflow:hidden; }
 
 /* HEADER */
-.header{ height:50px; display:flex; align-items:center; justify-content: space-between; padding:0 15px; border-bottom:1px solid #222; }
-.back-btn { font-size: 1.5rem; cursor: pointer; color: #fff; }
+.header{ height:50px; display:flex; align-items:center; justify-content: space-between; padding:0 15px; border-bottom:1px solid #222; z-index: 100;}
+.back-btn { font-size: 1.5rem; cursor: pointer; color: #fff; padding: 5px 10px; }
 .digital-clock { font-size: 0.75rem; color: #bbb; }
 
 /* PLAYER AREA */
-.player-wrap{ position:relative; width:100%; aspect-ratio:16/9; background:#000; overflow: hidden; cursor: pointer; display: flex; align-items: center; justify-content: center;}
+.player-wrap{ position:relative; width:100%; aspect-ratio:16/9; background:#000; overflow: hidden; display: flex; align-items: center; justify-content: center;}
 video{ width:100%; height:100%; object-fit: contain; z-index: 1;}
-
-/* CANVAS FOR ANIMATION */
-#visualizer {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 0; /* ভিডিওর পেছনে থাকবে */
-    pointer-events: none;
-    display: none; /* ডিফল্টভাবে বন্ধ */
-}
+canvas { position: absolute; width: 100%; height: 100%; z-index: 0; pointer-events: none; display: none; }
 
 .loader {
     position: absolute; width: 35px; height: 35px; border: 4px solid #333; border-top: 4px solid var(--accent);
@@ -48,69 +37,36 @@ video{ width:100%; height:100%; object-fit: contain; z-index: 1;}
 @keyframes spin { 100% { transform: rotate(360deg); } }
 
 /* CONTROLS */
-.controls-overlay {
-    position: absolute; inset: 0; background: rgba(0,0,0,0.3);
-    opacity: 0; visibility: hidden; transition: 0.3s; z-index: 10;
-}
+.controls-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.3); opacity: 0; visibility: hidden; transition: 0.3s; z-index: 10; }
 .controls-overlay.show { opacity: 1; visibility: visible; }
-
-.bottom-bar {
-    position: absolute; bottom: 0; width: 100%; padding: 10px 12px;
-    background: linear-gradient(transparent, rgba(0,0,0,0.9));
-    display: flex; align-items: center; justify-content: space-between;
-}
-
-.mini-btns { display: flex; align-items: center; gap: 18px; }
-.mini-btns i { font-size: 1.1rem; color: #fff; cursor: pointer; }
-#pp { font-size: 1.3rem; width: 20px; text-align: center; }
-
-.right-side { display: flex; align-items: center; gap: 12px; }
-#vTime { font-size: 0.7rem; color: #ddd; min-width: 35px; }
-.right-side i { font-size: 1rem; color: #fff; cursor: pointer; }
-
-/* QUALITY MENU */
-.q-menu {
-    position: absolute; bottom: 45px; right: 10px;
-    background: rgba(18,18,18,0.95); border: 1px solid #333;
-    border-radius: 8px; display: none; flex-direction: column;
-    z-index: 20; min-width: 100px;
-}
-.q-menu.active { display: flex; }
-.q-menu button {
-    background: none; border: none; color: #fff; padding: 10px;
-    font-size: 0.75rem; text-align: left; cursor: pointer; border-bottom: 1px solid #222;
-}
-.q-menu button.active { color: var(--accent); font-weight: bold; }
+.bottom-bar { position: absolute; bottom: 0; width: 100%; padding: 10px 12px; background: linear-gradient(transparent, rgba(0,0,0,0.9)); display: flex; align-items: center; justify-content: space-between; }
+.mini-btns i, .right-side i { font-size: 1.1rem; color: #fff; cursor: pointer; margin: 0 8px;}
 
 /* INFO SECTION */
 .info{ padding:12px 15px; display:flex; justify-content:space-between; align-items: center; }
 .channel-meta { display: flex; align-items: center; gap: 10px; }
 .mini-logo { width: 40px; height: 40px; border-radius: 50%; border: 1px solid #333; object-fit: contain; background: #111;}
-.info h3 { font-size: 1rem; margin-bottom: 2px; }
 .badge{ background:#111; padding:4px 12px; border-radius:15px; color:var(--accent); font-size:.7rem; border: 1px solid #222; }
 
 /* ACTIONS */
-.actions{ display:flex; justify-content:space-around; padding:12px 0; border-top:1px solid #222; border-bottom:1px solid #222; margin-bottom: 5px;}
+.actions{ display:flex; justify-content:space-around; padding:10px 0; border-top:1px solid #222; border-bottom:1px solid #222; }
 .actions div{ text-align:center; font-size:.75rem; cursor:pointer; flex: 1; color: #fff; }
-.actions i{ display:block; font-size:1.3rem; margin-bottom:5px; }
+.actions i{ display:block; font-size:1.2rem; margin-bottom:4px; }
 .actions div.active-tab { color: var(--accent); }
 
-/* CHANNEL LIST */
+/* LIST */
 .list{ flex:1; overflow-y:auto; padding:5px 15px; }
-.row{ display:flex; align-items:center; gap:12px; background:var(--card); padding:10px; border-radius:10px; margin-bottom:10px; cursor:pointer; transition: 0.2s;}
+.row{ display:flex; align-items:center; gap:12px; background:var(--card); padding:10px; border-radius:10px; margin-bottom:10px; cursor:pointer; position: relative;}
 .row.active{ border-left: 4px solid var(--accent); background: #0d2233; }
-.logo-circle{ width:38px; height:38px; border-radius:50%; overflow: hidden; border: 1px solid #333; flex-shrink: 0; background: #000; display: flex; align-items: center; justify-content: center;}
+.logo-circle{ width:38px; height:38px; border-radius:50%; overflow: hidden; background: #000; display: flex; align-items: center; justify-content: center;}
 .logo-circle img{ width:100%; height:100%; object-fit: contain; }
 .name{ flex:1; font-size: 0.9rem; font-weight: 500;}
-.star-btn { font-size: 1.1rem; color: #333; padding: 5px; }
+
+/* FAVORITE BUTTON */
+.star-btn { font-size: 1.2rem; color: #444; padding: 5px; transition: 0.2s; }
 .star-btn.active { color: var(--fav); }
 
-/* TOAST */
-#toast {
-    position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%);
-    background: #2196F3; color: white; padding: 10px 20px; border-radius: 50px;
-    font-size: 0.85rem; z-index: 9999; display: none;
-}
+#toast { position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%); background: var(--accent); color: white; padding: 8px 20px; border-radius: 50px; display: none; z-index: 9999; font-size: 0.8rem; }
 </style>
 </head>
 
@@ -118,27 +74,20 @@ video{ width:100%; height:100%; object-fit: contain; z-index: 1;}
 
 <div class="header">
   <div class="back-btn" onclick="handleBack()"><i class="fas fa-arrow-left"></i></div>
-  <div class="digital-clock" id="clockBox"><span id="fullDateTime"></span></div>
+  <div class="digital-clock" id="clockBox"></div>
 </div>
 
-<div class="player-wrap" id="playerArea">
+<div class="player-wrap" id="playerArea" onclick="showControls()">
   <div class="loader" id="loader"></div>
   <canvas id="visualizer"></canvas>
   <video id="video" playsinline crossorigin="anonymous"></video>
   
-  <div class="q-menu" id="qMenu"></div>
-
   <div class="controls-overlay" id="controls">
     <div class="bottom-bar">
         <div class="mini-btns">
-            <i class="fas fa-backward" onclick="event.stopPropagation(); seek(-10)"></i>
             <i class="fas fa-play" id="pp" onclick="event.stopPropagation(); togglePlay()"></i>
-            <i class="fas fa-forward" onclick="event.stopPropagation(); seek(10)"></i>
         </div>
         <div class="right-side">
-            <span id="vTime">00:00</span>
-            <i class="fas fa-cog" onclick="event.stopPropagation(); toggleQMenu()"></i>
-            <i class="fas fa-volume-up" id="vBtn" onclick="event.stopPropagation(); toggleMute()"></i>
             <i class="fas fa-expand" onclick="event.stopPropagation(); toggleFull()"></i>
         </div>
     </div>
@@ -148,10 +97,7 @@ video{ width:100%; height:100%; object-fit: contain; z-index: 1;}
 <div class="info">
     <div class="channel-meta">
       <img id="currentLogo" class="mini-logo" src="https://i.imgur.com/8Qf6Y0L.png">
-      <div>
-        <h3 id="title">Select Channel</h3>
-        <small style="color:#888; font-size:0.75rem;">Watching Premium Stream</small>
-      </div>
+      <h3 id="title" style="font-size: 1rem;">Select Channel</h3>
     </div>
     <div class="badge" id="count">Total: 0</div>
 </div>
@@ -159,146 +105,169 @@ video{ width:100%; height:100%; object-fit: contain; z-index: 1;}
 <div class="actions">
     <div onclick="alert('Shared!')"><i class="fas fa-share-nodes"></i>Share</div>
     <div id="favBtnTab" onclick="toggleFavoriteView()"><i class="far fa-star"></i>My List</div>
-    <div onclick="window.open('https://t.me/bestiptvlive')"><i class="fas fa-paper-plane"></i>Join Telegram</div>
+    <div onclick="window.open('https://t.me/bestiptvlive')"><i class="fas fa-paper-plane"></i>Telegram</div>
 </div>
 
 <div class="list" id="list"></div>
-<div id="toast">Link Copied!</div>
+<div id="toast"></div>
 
 <script>
-const video=document.getElementById('video'), controls=document.getElementById('controls');
-const loader=document.getElementById('loader'), canvas = document.getElementById('visualizer');
-const pp=document.getElementById('pp'), listArea = document.getElementById('list'), qMenu = document.getElementById('qMenu');
-const playerArea = document.getElementById('playerArea'), ctx = canvas.getContext('2d');
+const video=document.getElementById('video'), loader=document.getElementById('loader');
+const canvas=document.getElementById('visualizer'), ctx=canvas.getContext('2d');
+const listArea=document.getElementById('list'), pp=document.getElementById('pp');
+const playerArea = document.getElementById('playerArea');
 
-let hls=new Hls(), allChannels = [], hideTimeout, isFavView = false;
-let audioCtx, analyser, source, dataArray, animationId;
+let hls=new Hls(), allChannels = [], isFavView = false;
+let audioCtx, analyser, source, dataArray;
 
-/* ১. অডিও অ্যানিমেশন সেটআপ */
-function setupVisualizer() {
+// ১. ব্যাক বাটন সিস্টেম
+function handleBack() {
+    if (isFavView) {
+        toggleFavoriteView(); // ফেভারিট মোডে থাকলে নরমাল মোডে ফিরবে
+    } else {
+        window.history.back(); // নতুবা আগের পেজে যাবে
+    }
+}
+
+// ২. ফেভারিট লজিক
+const getFavs = () => JSON.parse(localStorage.getItem('fav_ch_list') || "[]");
+
+function toggleFav(e, ch) {
+    e.stopPropagation();
+    let favs = getFavs();
+    const idx = favs.findIndex(x => x.url === ch.url);
+    
+    if(idx > -1) {
+        favs.splice(idx, 1);
+        e.target.className = "far fa-star star-btn";
+        showToast("Removed from My List");
+    } else {
+        favs.push(ch);
+        e.target.className = "fas fa-star star-btn active";
+        showToast("Added to My List");
+    }
+    localStorage.setItem('fav_ch_list', JSON.stringify(favs));
+    if(isFavView) render(favs);
+}
+
+function toggleFavoriteView() {
+    isFavView = !isFavView;
+    const favTab = document.getElementById('favBtnTab');
+    favTab.classList.toggle('active-tab', isFavView);
+    favTab.querySelector('i').className = isFavView ? "fas fa-star" : "far fa-star";
+    render(isFavView ? getFavs() : allChannels);
+}
+
+// ৩. প্লেয়ার সিস্টেম
+function play(url, name, logo) {
+    document.getElementById('title').innerText = name;
+    document.getElementById('currentLogo').src = logo || "https://i.imgur.com/8Qf6Y0L.png";
+    loader.style.display = "block";
+    
+    if(!url.includes('.m3u8')) {
+        canvas.style.display = "block";
+        initVisualizer();
+    } else {
+        canvas.style.display = "none";
+    }
+
+    hls.detachMedia();
+    video.pause();
+    video.src = url.replace(/ /g, "%20");
+    
+    if(url.includes('.m3u8') && Hls.isSupported()){
+        hls.destroy(); hls = new Hls();
+        hls.loadSource(video.src); hls.attachMedia(video);
+        hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
+    } else {
+        video.play().catch(() => loader.style.display="none");
+    }
+    pp.className = "fas fa-pause";
+}
+
+// ৪. ডাটা লোডিং
+const playlistUrl = new URLSearchParams(location.search).get('playlist');
+if(playlistUrl) {
+    fetch(playlistUrl.replace(/ /g, "%20")).then(r=>r.text()).then(data => {
+        let channels = [], c = {}, lines = data.split('\n');
+        lines.forEach(l => {
+            if(l.startsWith('#EXTINF')){
+                c.name = l.split(',')[1].trim();
+                const m = l.match(/tvg-logo="([^"]*)"/);
+                c.logo = m ? m[1] : "";
+            } else if(l.startsWith('http')) {
+                c.url = l.trim(); channels.push({...c}); c={};
+            }
+        });
+        allChannels = channels;
+        render(allChannels);
+    });
+}
+
+function render(arr) {
+    listArea.innerHTML = "";
+    document.getElementById('count').innerText = "Total: " + arr.length;
+    const favs = getFavs();
+    
+    arr.forEach((ch, i) => {
+        const isFav = favs.some(f => f.url === ch.url);
+        const d = document.createElement('div');
+        d.className = "row";
+        d.innerHTML = `
+            <div class="logo-circle"><img src="${ch.logo || 'https://i.imgur.com/8Qf6Y0L.png'}" onerror="this.src='https://i.imgur.com/8Qf6Y0L.png'"></div>
+            <div class="name">${ch.name}</div>
+            <i class="${isFav?'fas':'far'} fa-star star-btn ${isFav?'active':''}"></i>
+        `;
+        
+        d.onclick = () => {
+            play(ch.url, ch.name, ch.logo);
+            document.querySelectorAll('.row').forEach(x => x.classList.remove('active'));
+            d.classList.add('active');
+        };
+        
+        d.querySelector('.star-btn').onclick = (e) => toggleFav(e, ch);
+        listArea.appendChild(d);
+        if(i === 0 && !video.src && !isFavView) d.click();
+    });
+}
+
+// ৫. সাপোর্ট ফাংশনস
+function showControls() {
+    document.getElementById('controls').classList.add('show');
+    setTimeout(() => document.getElementById('controls').classList.remove('show'), 4000);
+}
+function togglePlay() { video.paused ? video.play() : video.pause(); pp.className = video.paused ? "fas fa-play" : "fas fa-pause"; }
+function toggleFull() { if(video.requestFullscreen) video.requestFullscreen(); else if(video.webkitRequestFullscreen) video.webkitRequestFullscreen(); }
+function showToast(m) { const t=document.getElementById('toast'); t.innerText=m; t.style.display="block"; setTimeout(()=>t.style.display="none", 2000); }
+
+// ভিজ্যুয়ালাইজার (সাউন্ড অ্যানিমেশন)
+function initVisualizer() {
     if (audioCtx) return;
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     analyser = audioCtx.createAnalyser();
     source = audioCtx.createMediaElementSource(video);
-    source.connect(analyser);
-    analyser.connect(audioCtx.destination);
-    analyser.fftSize = 256;
-    const bufferLength = analyser.frequencyBinCount;
-    dataArray = new Uint8Array(bufferLength);
-    draw();
+    source.connect(analyser); analyser.connect(audioCtx.destination);
+    analyser.fftSize = 64;
+    dataArray = new Uint8Array(analyser.frequencyBinCount);
+    drawVisual();
 }
-
-function draw() {
-    animationId = requestAnimationFrame(draw);
+function drawVisual() {
+    requestAnimationFrame(drawVisual);
     analyser.getByteFrequencyData(dataArray);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    const barWidth = (canvas.width / dataArray.length) * 2.5;
-    let barHeight, x = 0;
-
-    for(let i = 0; i < dataArray.length; i++) {
-        barHeight = dataArray[i] / 2;
-        ctx.fillStyle = `rgba(33, 150, 243, ${barHeight/100})`; // থিম কালার অনুযায়ী বার
-        ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
-        x += barWidth + 1;
-    }
-}
-
-/* ২. স্মার্ট কন্ট্রোল */
-function showControls() {
-    controls.classList.add('show');
-    clearTimeout(hideTimeout);
-    hideTimeout = setTimeout(hideControls, 4000);
-}
-function hideControls() {
-    controls.classList.remove('show');
-    qMenu.classList.remove('active');
-}
-playerArea.addEventListener('click', () => showControls());
-
-/* ৩. প্লে সিস্টেম */
-function play(url, name, logo){
-  document.getElementById('title').innerText=name;
-  document.getElementById('currentLogo').src= logo || "https://i.imgur.com/8Qf6Y0L.png";
-  qMenu.innerHTML = "";
-  
-  // অ্যানিমেশন হ্যান্ডেলিং
-  if(!url.includes('.m3u8')) {
-      canvas.style.display = "block";
-      setupVisualizer();
-      if(audioCtx) audioCtx.resume();
-  } else {
-      canvas.style.display = "none";
-  }
-
-  hls.detachMedia();
-  video.pause();
-  video.src = "";
-
-  if(url.includes('.m3u8')){
-      if(Hls.isSupported()){
-          hls.destroy(); hls=new Hls();
-          hls.loadSource(url); hls.attachMedia(video);
-          hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
-      }
-  } else {
-      video.src = url;
-      video.play().catch(e => console.log("Direct Play Failed"));
-  }
-  pp.className="fas fa-pause";
-}
-
-/* ৪. ডাটা রেন্ডারিং (সংক্ষেপিত) */
-const playlistUrl = new URLSearchParams(location.search).get('playlist');
-if(playlistUrl){
-    fetch(playlistUrl.replace(/ /g, "%20")).then(r=>r.text()).then(data=>{
-      const lines=data.split('\n');
-      let arr=[],c={};
-      lines.forEach(l=>{
-        if(l.startsWith('#EXTINF')){
-          c.name = l.split(',')[1] || "Unknown";
-          const m = l.match(/tvg-logo="([^"]*)"/);
-          c.logo = m ? m[1] : "";
-        }else if(l.trim().startsWith('http')){
-          c.url = l.trim(); arr.push({...c}); c={};
-        }
-      });
-      allChannels = arr; render(arr);
+    let x = 0;
+    dataArray.forEach(val => {
+        let h = (val / 255) * canvas.height;
+        ctx.fillStyle = "#2196F3";
+        ctx.fillRect(x, canvas.height - h, 4, h);
+        x += 8;
     });
 }
 
-function render(arr){
-  listArea.innerHTML = "";
-  arr.forEach((c,i)=>{
-    const d=document.createElement('div');
-    d.className="row";
-    d.innerHTML=`<div class="logo-circle"><img src="${c.logo || 'https://i.imgur.com/8Qf6Y0L.png'}"></div><div class="name">${c.name}</div>`;
-    d.onclick=()=>{
-        play(c.url, c.name, c.logo);
-        document.querySelectorAll('.row').forEach(x=>x.classList.remove('active'));
-        d.classList.add('active');
-    };
-    listArea.appendChild(d);
-    if(i===0) d.click();
-  });
-}
+video.onplaying = () => loader.style.display = "none";
+setInterval(() => { document.getElementById('clockBox').innerText = new Date().toLocaleTimeString(); }, 1000);
 
-function togglePlay(){
-    video.paused ? video.play() : video.pause();
-    pp.className = video.paused ? "fas fa-play" : "fas fa-pause";
-}
-
-// ক্লক আপডেট
-setInterval(() => {
-    document.getElementById('fullDateTime').innerText = new Date().toLocaleTimeString();
-}, 1000);
-
-video.onplaying = () => { loader.style.display = "none"; if(audioCtx) audioCtx.resume(); };
-video.onwaiting = () => loader.style.display = "block";
-
-// ক্যানভাস সাইজ ঠিক করা
-canvas.width = playerArea.offsetWidth;
-canvas.height = playerArea.offsetHeight;
+canvas.width = 400; canvas.height = 100;
 </script>
 </body>
 </html>
