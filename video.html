@@ -28,7 +28,6 @@ body{ background:var(--bg); color:var(--text); height:100vh; display:flex; flex-
 .player-wrap{ position:relative; width:100%; aspect-ratio:16/9; background:#000; overflow: hidden;}
 video{ width:100%; height:100%; object-fit: contain; }
 
-/* LOADER */
 .loader {
     position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
     width: 30px; height: 30px; border: 3px solid #333; border-top: 3px solid var(--accent);
@@ -36,7 +35,7 @@ video{ width:100%; height:100%; object-fit: contain; }
 }
 @keyframes spin { 100% { transform: translate(-50%, -50%) rotate(360deg); } }
 
-/* BOTTOM CONTROLS */
+/* CONTROLS */
 .controls-overlay {
     position: absolute; inset: 0; background: rgba(0,0,0,0.3);
     opacity: 0; visibility: hidden; transition: 0.3s; z-index: 10;
@@ -49,27 +48,38 @@ video{ width:100%; height:100%; object-fit: contain; }
     display: flex; align-items: center; justify-content: space-between;
 }
 
-.mini-btns { display: flex; align-items: center; gap: 18px; }
-.mini-btns i { font-size: 1.1rem; color: #fff; cursor: pointer; }
-#pp { font-size: 1.3rem; width: 20px; text-align: center; } /* Play button specific */
+.mini-btns { display: flex; align-items: center; gap: 15px; }
+.mini-btns i { font-size: 1rem; color: #fff; cursor: pointer; }
+#pp { font-size: 1.2rem; width: 20px; text-align: center; }
 
-.right-side { display: flex; align-items: center; gap: 15px; }
-#vTime { font-size: 0.7rem; color: #ddd; min-width: 35px; }
-.right-side i { font-size: 1rem; color: #fff; cursor: pointer; }
+.right-side { display: flex; align-items: center; gap: 12px; }
+#vTime { font-size: 0.7rem; color: #ddd; }
+.right-side i { font-size: 0.95rem; color: #fff; cursor: pointer; }
 
-/* INFO SECTION */
+/* QUALITY MENU */
+.quality-menu {
+    position: absolute; bottom: 45px; right: 10px;
+    background: rgba(20,20,20,0.95); border: 1px solid #333;
+    border-radius: 8px; display: none; flex-direction: column;
+    z-index: 20; min-width: 100px; overflow: hidden;
+}
+.quality-menu.active { display: flex; }
+.quality-menu button {
+    background: none; border: none; color: #fff; padding: 10px;
+    font-size: 0.75rem; cursor: pointer; text-align: left;
+}
+.quality-menu button:hover { background: var(--accent); }
+.quality-menu button.active { color: var(--accent); font-weight: bold; }
+
+/* INFO & LIST (Same as before) */
 .info{ padding:12px 15px; display:flex; justify-content:space-between; align-items: center; }
 .channel-meta { display: flex; align-items: center; gap: 10px; }
 .mini-logo { width: 35px; height: 35px; border-radius: 50%; border: 1px solid #333; object-fit: contain; }
 .info h3 { font-size: 0.95rem; }
 .badge{ background:#111; padding:3px 10px; border-radius:15px; color:var(--accent); font-size:.65rem; border: 1px solid #222; }
-
-/* ACTIONS */
 .actions{ display:flex; justify-content:space-around; padding:10px 0; border-top:1px solid #222; border-bottom:1px solid #222; }
-.actions div{ text-align:center; font-size:.75rem; cursor:pointer; flex: 1; }
+.actions div{ text-align:center; font-size:.75rem; cursor:pointer; flex: 1; color: #fff; }
 .actions i{ display:block; font-size:1.2rem; margin-bottom:4px; }
-
-/* LIST */
 .list{ flex:1; overflow-y:auto; padding:10px 15px; }
 .row{ display:flex; align-items:center; gap:10px; background:var(--card); padding:8px; border-radius:8px; margin-bottom:8px; cursor:pointer; }
 .row.active{ border-left: 3px solid var(--accent); background: #0d2233; }
@@ -90,6 +100,8 @@ video{ width:100%; height:100%; object-fit: contain; }
   <div class="loader" id="loader"></div>
   <video id="video" playsinline></video>
   
+  <div class="quality-menu" id="qMenu"></div>
+
   <div class="controls-overlay" id="controls">
     <div class="bottom-bar">
         <div class="mini-btns">
@@ -100,12 +112,152 @@ video{ width:100%; height:100%; object-fit: contain; }
         
         <div class="right-side">
             <span id="vTime">00:00</span>
+            <i class="fas fa-cog" onclick="event.stopPropagation(); toggleQualityMenu()"></i>
             <i class="fas fa-volume-up" id="vBtn" onclick="event.stopPropagation(); toggleMute()"></i>
             <i class="fas fa-expand" onclick="event.stopPropagation(); toggleFull()"></i>
         </div>
     </div>
   </div>
 </div>
+
+<div class="info">
+    <div class="channel-meta">
+      <img id="currentLogo" class="mini-logo" src="https://i.imgur.com/8Qf6Y0L.png">
+      <div>
+        <h3 id="title">Select Channel</h3>
+        <small style="color:#888; font-size:0.7rem;">Live Streaming 24/7</small>
+      </div>
+    </div>
+    <div class="badge" id="count">Total: 0</div>
+</div>
+
+<div class="actions">
+    <div onclick="copyLink()"><i class="fas fa-share-nodes"></i>Share</div>
+    <div onclick="filterFavorites()"><i class="far fa-star"></i>My List</div>
+    <div onclick="window.open('https://t.me/bestiptvlive')"><i class="fas fa-paper-plane"></i>Join Telegram</div>
+</div>
+
+<div class="list" id="list"></div>
+
+<script>
+const video=document.getElementById('video'), controls=document.getElementById('controls');
+const clockBox=document.getElementById('clockBox'), loader=document.getElementById('loader');
+const pp=document.getElementById('pp'), qMenu=document.getElementById('qMenu');
+let hls=new Hls(), allChannels = [], hideTimeout;
+
+function showControls() {
+    controls.classList.add('show');
+    clockBox.style.opacity = "1";
+    clearTimeout(hideTimeout);
+    hideTimeout = setTimeout(() => {
+        controls.classList.remove('show');
+        clockBox.style.opacity = "0";
+        qMenu.classList.remove('active');
+    }, 3000);
+}
+playerArea.onclick = showControls;
+
+function toggleQualityMenu() { qMenu.classList.toggle('active'); }
+
+function updateClock() {
+    const options = { weekday: 'short', day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true };
+    document.getElementById('fullDateTime').innerText = new Date().toLocaleString('en-GB', options);
+}
+setInterval(updateClock, 1000);
+
+video.ontimeupdate = () => {
+    let m = Math.floor(video.currentTime / 60), s = Math.floor(video.currentTime % 60);
+    document.getElementById('vTime').innerText = (m<10?'0'+m:m) + ":" + (s<10?'0'+s:s);
+};
+
+function togglePlay(){
+    video.paused ? video.play() : video.pause();
+    pp.className = video.paused ? "fas fa-play" : "fas fa-pause";
+}
+function seek(t){ video.currentTime+=t; }
+function toggleMute(){
+    video.muted = !video.muted;
+    document.getElementById('vBtn').className = video.muted ? "fas fa-volume-mute" : "fas fa-volume-up";
+}
+function toggleFull(){
+    if(video.requestFullscreen) video.requestFullscreen();
+    else if(video.webkitRequestFullscreen) video.webkitRequestFullscreen();
+}
+
+video.onloadstart = () => loader.style.display = "block";
+video.onplaying = () => loader.style.display = "none";
+
+function play(url, name, logo){
+  document.getElementById('title').innerText=name;
+  document.getElementById('currentLogo').src=logo;
+  qMenu.innerHTML = ""; 
+  if(Hls.isSupported()){
+      hls.destroy(); hls=new Hls();
+      hls.loadSource(url); hls.attachMedia(video);
+      hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
+          video.play();
+          setupQualityLevels();
+      });
+  } else { video.src = url; video.play(); }
+  pp.className="fas fa-pause";
+}
+
+function setupQualityLevels() {
+    let levels = hls.levels;
+    let html = `<button onclick="setQuality(-1)" class="active">Auto</button>`;
+    levels.forEach((level, index) => {
+        html += `<button onclick="setQuality(${index})">${level.height}p</button>`;
+    });
+    qMenu.innerHTML = html;
+}
+
+function setQuality(index) {
+    hls.currentLevel = index;
+    qMenu.classList.remove('active');
+    let btns = qMenu.querySelectorAll('button');
+    btns.forEach((btn, i) => btn.className = (i === index + 1) ? 'active' : '');
+}
+
+const url=new URLSearchParams(location.search).get('playlist');
+if(url){
+    fetch(url).then(r=>r.text()).then(data=>{
+      const lines=data.split('\n');
+      let arr=[],c={};
+      lines.forEach(l=>{
+        if(l.startsWith('#EXTINF')){
+          c.name=l.split(',')[1]||"Unknown";
+          const m=l.match(/tvg-logo="([^"]*)"/);
+          c.logo= m ? m[1] : "https://i.imgur.com/8Qf6Y0L.png";
+        }else if(l.trim().startsWith('http')){
+          c.url=l.trim(); arr.push({...c}); c={};
+        }
+      });
+      allChannels = arr; render(allChannels);
+    });
+}
+
+function render(arr){
+  const listArea = document.getElementById('list');
+  listArea.innerHTML = "";
+  document.getElementById('count').innerText = "Total: " + arr.length;
+  arr.forEach((c,i)=>{
+    const d=document.createElement('div');
+    d.className="row";
+    d.innerHTML=`<div class="logo-circle"><img src="${c.logo}"></div><div class="name">${c.name}</div>`;
+    d.onclick=()=>{
+        play(c.url, c.name, c.logo);
+        document.querySelectorAll('.row').forEach(x=>x.classList.remove('active'));
+        d.classList.add('active');
+    };
+    listArea.appendChild(d);
+    if(i===0 && !video.src) d.click();
+  });
+}
+
+function copyLink(){ navigator.clipboard.writeText(video.src); alert("Link Copied!"); }
+</script>
+</body>
+</html>
 
 <div class="info">
     <div class="channel-meta">
