@@ -3,244 +3,314 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Ultimate IPTV Player PRO</title>
+<title>Ultimate IPTV Player PRO - v3.0</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 
 <style>
-:root { --bg: #000; --card: #121212; --accent: #00E5FF; --fav: #FFD700; --text: #fff; }
-* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; }
+:root { 
+    --bg: #050608; 
+    --card: #12141a; 
+    --accent: #00d2ff; 
+    --fav: #ff4757; 
+    --text: #ffffff; 
+    --glass: rgba(255, 255, 255, 0.05);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', system-ui, -apple-system, sans-serif; }
 
 body { 
     background: var(--bg); color: var(--text); 
     height: 100vh; display: flex; flex-direction: column; overflow: hidden; 
 }
 
-/* PLAYER AREA - Fixed Aspect Ratio */
+/* PLAYER AREA - Cinema Style */
 .player-wrap { 
     position: relative; width: 100%; background: #000; 
     display: flex; align-items: center; justify-content: center; 
     aspect-ratio: 16/9; flex-shrink: 0; overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
 }
-video { width: 100%; height: 100%; object-fit: contain; z-index: 2; }
-#visualizer { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 3; pointer-events: none; display: none; }
 
-/* CONTROLS & QUALITY MENU */
+video { width: 100%; height: 100%; object-fit: contain; z-index: 1; }
+
+/* LOADING ANIMATION */
+.loader { 
+    position: absolute; width: 60px; height: 60px; 
+    border: 4px solid var(--glass); border-top: 4px solid var(--accent); 
+    border-radius: 50%; animation: spin 0.8s cubic-bezier(0.5, 0, 0.5, 1) infinite; 
+    display: none; z-index: 10; 
+}
+
+/* CONTROLS OVERLAY */
 .controls-overlay { 
-    position: absolute; inset: 0; background: rgba(0,0,0,0.5); 
-    opacity: 0; visibility: hidden; transition: 0.3s; z-index: 15; 
-    display: flex; flex-direction: column; justify-content: flex-end; 
+    position: absolute; inset: 0; background: rgba(0,0,0,0.4); 
+    opacity: 0; visibility: hidden; transition: all 0.4s ease; z-index: 15; 
+    display: flex; flex-direction: column; justify-content: space-between; 
 }
 .controls-overlay.show { opacity: 1; visibility: visible; }
-.bottom-bar { padding: 10px 15px; background: linear-gradient(transparent, rgba(0,0,0,0.9)); display: flex; align-items: center; justify-content: space-between; }
-.mini-btns, .right-side { display: flex; align-items: center; gap: 20px; }
-.mini-btns i, .right-side i { font-size: 1.2rem; cursor: pointer; color: #fff; }
 
-.quality-menu { 
-    position: absolute; bottom: 60px; right: 15px; background: rgba(20,20,20,0.95); 
-    border: 1px solid var(--accent); border-radius: 8px; display: none; 
-    flex-direction: column; z-index: 20; min-width: 100px;
+.top-bar { padding: 15px; display: flex; align-items: center; justify-content: space-between; background: linear-gradient(rgba(0,0,0,0.8), transparent); }
+.bottom-bar { padding: 20px; background: linear-gradient(transparent, rgba(0,0,0,0.9)); }
+
+.control-btn { background: none; border: none; color: #fff; font-size: 1.4rem; cursor: pointer; transition: 0.2s; }
+.control-btn:hover { color: var(--accent); transform: scale(1.1); }
+
+/* QUALITY MENU */
+.menu-card { 
+    position: absolute; bottom: 80px; right: 20px; background: var(--card); 
+    border-radius: 12px; display: none; flex-direction: column; 
+    overflow: hidden; border: 1px solid var(--border); min-width: 120px; box-shadow: 0 10px 20px rgba(0,0,0,0.4);
 }
-.quality-menu button { background: none; border: none; color: white; padding: 10px; cursor: pointer; border-bottom: 1px solid #222; }
+.menu-card button { background: none; border: none; color: white; padding: 12px 15px; cursor: pointer; text-align: left; font-size: 0.85rem; }
+.menu-card button:hover { background: var(--accent); color: #000; }
 
-/* INFO & ACTIONS - No Double Rendering */
-.info { padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; background: #080808; border-bottom: 1px solid #1a1a1a; flex-shrink: 0; }
-.channel-meta { display: flex; align-items: center; gap: 10px; }
-.mini-logo { width: 42px; height: 42px; border-radius: 8px; object-fit: contain; background: #111; border: 1px solid #222; }
+/* INFO SECTION */
+.info-section { 
+    padding: 15px 20px; background: var(--card); 
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.channel-info { display: flex; align-items: center; gap: 15px; }
+.logo-box { width: 50px; height: 50px; border-radius: 12px; overflow: hidden; background: #000; border: 1px solid var(--glass); }
+.logo-box img { width: 100%; height: 100%; object-fit: contain; }
 
-.actions { display: flex; padding: 10px 0; background: #050505; border-bottom: 1px solid #1a1a1a; flex-shrink: 0; }
-.actions div { flex: 1; text-align: center; font-size: 0.75rem; color: #bbb; cursor: pointer; }
-.actions i { display: block; font-size: 1.3rem; margin-bottom: 5px; color: #fff; }
-.active-tab, .active-tab i { color: var(--accent) !important; }
+/* NAV TABS */
+.nav-tabs { display: flex; background: #0a0b10; padding: 5px; gap: 5px; }
+.tab { flex: 1; padding: 12px; text-align: center; font-size: 0.8rem; color: #888; cursor: pointer; border-radius: 10px; transition: 0.3s; }
+.tab.active { background: var(--accent); color: #000; font-weight: bold; }
+.tab i { display: block; font-size: 1.2rem; margin-bottom: 4px; }
 
-/* CHANNEL LIST - Full Screen Coverage */
-.list { flex: 1; overflow-y: auto; padding: 12px; background: var(--bg); }
-.row { display: flex; align-items: center; gap: 12px; background: var(--card); padding: 10px; border-radius: 12px; margin-bottom: 10px; border: 1px solid #1a1a1a; cursor: pointer; }
-.row.active { border-color: var(--accent); background: #0d2233; }
-.list-logo { width: 40px; height: 40px; border-radius: 8px; object-fit: cover; }
-.name { flex: 1; font-size: 0.9rem; font-weight: 500; color: #fff; }
-.star-btn { font-size: 1.1rem; color: #444; }
-.star-btn.is-fav { color: var(--fav); }
+/* LIST AREA */
+.list-container { flex: 1; overflow-y: auto; padding: 15px; scrollbar-width: none; }
+.list-container::-webkit-scrollbar { display: none; }
 
-.loader { position: absolute; width: 40px; height: 40px; border: 4px solid #333; border-top: 4px solid var(--accent); border-radius: 50%; animation: spin 1s linear infinite; display: none; z-index: 10; }
-@keyframes spin { 100% { transform: rotate(360deg); } }
-#toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: var(--accent); color: #000; padding: 8px 20px; border-radius: 20px; font-size: 0.85rem; display: none; z-index: 1000; font-weight: bold; }
+.channel-card { 
+    display: flex; align-items: center; gap: 15px; background: var(--glass); 
+    padding: 12px; border-radius: 15px; margin-bottom: 10px; 
+    border: 1px solid transparent; cursor: pointer; transition: 0.3s;
+}
+.channel-card:hover { background: rgba(0, 210, 255, 0.05); border-color: rgba(0, 210, 255, 0.2); }
+.channel-card.active { border-color: var(--accent); background: rgba(0, 210, 255, 0.1); }
+.channel-card img { width: 45px; height: 45px; border-radius: 10px; object-fit: contain; background: #000; }
+.channel-card .name { flex: 1; font-weight: 500; font-size: 0.95rem; }
+
+.fav-icon { color: #333; font-size: 1.2rem; transition: 0.3s; }
+.fav-icon.is-fav { color: var(--fav); }
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Toast Notification */
+#toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: var(--accent); color: #000; padding: 10px 25px; border-radius: 30px; font-weight: bold; font-size: 0.9rem; z-index: 2000; display: none; box-shadow: 0 5px 15px rgba(0,210,255,0.4); }
 </style>
 </head>
 <body>
 
-<div class="player-wrap" id="playerArea" onclick="handleControlToggle()">
+<div class="player-wrap" id="playerArea" onclick="toggleControls()">
     <div class="loader" id="loader"></div>
-    <canvas id="visualizer"></canvas>
     <video id="video" playsinline crossorigin="anonymous"></video>
-    <div class="quality-menu" id="qualityMenu"></div>
 
     <div class="controls-overlay" id="controls">
+        <div class="top-bar">
+            <button class="control-btn" onclick="history.back()"><i class="fas fa-chevron-left"></i></button>
+            <div id="videoTitle" style="font-weight: 600; font-size: 0.9rem;">Best IPTV PRO</div>
+            <button class="control-btn" onclick="location.reload()"><i class="fas fa-sync-alt"></i></button>
+        </div>
+
+        <div class="menu-card" id="qualityMenu"></div>
+
         <div class="bottom-bar">
-            <div class="mini-btns">
-                <i class="fas fa-play" id="pp" onclick="event.stopPropagation(); togglePlay()"></i>
-                <i class="fas fa-redo" onclick="event.stopPropagation(); location.reload()"></i>
-            </div>
-            <div class="right-side">
-                <i class="fas fa-cog" onclick="event.stopPropagation(); toggleQualityMenu()"></i>
-                <i class="fas fa-volume-up" id="vBtn" onclick="event.stopPropagation(); toggleMute()"></i>
-                <i class="fas fa-expand" onclick="event.stopPropagation(); toggleFull()"></i>
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+                <div style="display: flex; gap: 25px;">
+                    <button class="control-btn" id="playBtn" onclick="event.stopPropagation(); togglePlay()"><i class="fas fa-play"></i></button>
+                    <button class="control-btn" onclick="event.stopPropagation(); toggleMute()"><i class="fas fa-volume-up" id="volIcon"></i></button>
+                </div>
+                <div style="display: flex; gap: 20px;">
+                    <button class="control-btn" onclick="event.stopPropagation(); toggleQuality()"><i class="fas fa-sliders-h"></i></button>
+                    <button class="control-btn" onclick="event.stopPropagation(); toggleFull()"><i class="fas fa-expand"></i></button>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<div class="info">
-    <div class="channel-meta">
-        <img id="currentLogo" class="mini-logo" src="https://i.imgur.com/8Qf6Y0L.png">
+<div class="info-section">
+    <div class="channel-info">
+        <div class="logo-box"><img id="curLogo" src="https://i.imgur.com/8Qf6Y0L.png"></div>
         <div>
-            <h3 id="title" style="font-size: 1rem;">Select Channel</h3>
-            <small style="color:var(--accent); font-size:0.7rem;">LIVE STREAMING</small>
+            <div id="curName" style="font-weight: 700; font-size: 1.1rem;">Select Channel</div>
+            <div style="color: var(--accent); font-size: 0.75rem; font-weight: bold;"><i class="fas fa-circle" style="font-size: 8px; margin-right: 5px;"></i> LIVE NOW</div>
         </div>
     </div>
-    <div class="badge" id="count" style="background:#1a1a1a; padding:4px 8px; border-radius:5px; font-size:12px; color:var(--accent)">0 CH</div>
+    <div id="chCount" style="background: var(--glass); padding: 5px 12px; border-radius: 8px; font-size: 0.8rem; border: 1px solid rgba(255,255,255,0.1);">0 CH</div>
 </div>
 
-<div class="actions">
-    <div onclick="copyShareLink()"><i class="fas fa-share-nodes"></i>Share</div>
-    <div id="favBtnTab" onclick="toggleFavoriteView()"><i class="fas fa-star"></i>My List</div>
-    <div onclick="window.open('https://t.me/bestiptvlive', '_blank')"><i class="fab fa-telegram-plane"></i>Telegram</div>
+<div class="nav-tabs">
+    <div class="tab active" id="allTab" onclick="switchTab('all')"><i class="fas fa-tv"></i>Channels</div>
+    <div class="tab" id="favTab" onclick="switchTab('fav')"><i class="fas fa-heart"></i>Favorites</div>
+    <div class="tab" onclick="share()"><i class="fas fa-share-alt"></i>Share App</div>
 </div>
 
-<div class="list" id="list"></div>
+<div class="list-container" id="listArea"></div>
 <div id="toast"></div>
 
 <script>
-const video=document.getElementById('video'), loader=document.getElementById('loader'), canvas=document.getElementById('visualizer'), ctx=canvas.getContext('2d'), listArea=document.getElementById('list'), pp=document.getElementById('pp'), controls=document.getElementById('controls'), qualityMenu=document.getElementById('qualityMenu');
+const video = document.getElementById('video');
+const loader = document.getElementById('loader');
+const listArea = document.getElementById('listArea');
+const controls = document.getElementById('controls');
+const playBtn = document.getElementById('playBtn');
+const qualityMenu = document.getElementById('qualityMenu');
 
-let hls=new Hls(), allChannels=[], isFavView=false, hideTimeout, audioCtx, analyser, source, dataArray;
+let hls = new Hls();
+let allChannels = [];
+let currentMode = 'all';
+let controlTimeout;
 
-function copyShareLink() {
-    navigator.clipboard.writeText("https://bestiptv.rf.gd/").then(() => showToast("Link Copied!"));
-}
-
-function initVisualizer() {
-    if (audioCtx) return;
-    try {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        analyser = audioCtx.createAnalyser();
-        source = audioCtx.createMediaElementSource(video);
-        source.connect(analyser); analyser.connect(audioCtx.destination);
-        analyser.fftSize = 64; dataArray = new Uint8Array(analyser.frequencyBinCount);
-        draw();
-    } catch(e) {}
-}
-
-function draw() {
-    requestAnimationFrame(draw);
-    if(!analyser) return;
-    analyser.getByteFrequencyData(dataArray);
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    let barWidth = (canvas.width / dataArray.length) * 2;
-    let x = 0;
-    for(let i=0; i<dataArray.length; i++) {
-        let barHeight = (dataArray[i]/255) * canvas.height;
-        ctx.fillStyle = "rgba(0, 229, 255, 0.8)";
-        ctx.fillRect(x, canvas.height - barHeight, barWidth - 4, barHeight);
-        x += barWidth;
-    }
-}
-
-video.onloadedmetadata = () => {
-    canvas.style.display = (video.videoHeight === 0) ? "block" : "none";
-};
-
-const getFavs = () => JSON.parse(localStorage.getItem('my_iptv_favs') || "[]");
-
-function render(arr) {
-    listArea.innerHTML = "";
-    document.getElementById('count').innerText = arr.length + " CH";
-    const favs = getFavs();
-    arr.forEach(ch => {
-        const isFav = favs.some(f => f.url === ch.url);
-        const d = document.createElement('div');
-        d.className = `row ${video.src === ch.url ? 'active' : ''}`;
-        d.innerHTML = `<img src="${ch.logo}" class="list-logo" onerror="this.src='https://i.imgur.com/8Qf6Y0L.png'"><div class="name">${ch.name}</div><i class="fas fa-star star-btn ${isFav ? 'is-fav' : ''}"></i>`;
-        d.onclick = () => play(ch.url, ch.name, ch.logo);
-        d.querySelector('.star-btn').onclick = (e) => { e.stopPropagation(); toggleFavorite(ch); };
-        listArea.appendChild(d);
-    });
-}
-
-function toggleFavorite(ch) {
-    let favs = getFavs();
-    const idx = favs.findIndex(f => f.url === ch.url);
-    (idx > -1) ? favs.splice(idx, 1) : favs.push(ch);
-    localStorage.setItem('my_iptv_favs', JSON.stringify(favs));
-    render(isFavView ? favs : allChannels);
-}
-
-function toggleFavoriteView() {
-    isFavView = !isFavView;
-    document.getElementById('favBtnTab').classList.toggle('active-tab', isFavView);
-    render(isFavView ? getFavs() : allChannels);
-}
-
-function setupQualityLevels() {
-    qualityMenu.innerHTML = `<button onclick="setQuality(-1)">Auto</button>`;
-    hls.levels.forEach((l, i) => {
-        qualityMenu.innerHTML += `<button onclick="setQuality(${i})">${l.height || i}p</button>`;
-    });
-}
-
-function setQuality(idx) { hls.currentLevel = idx; qualityMenu.style.display = "none"; }
-
-function play(url, name, logo) {
-    initVisualizer();
-    if(audioCtx?.state === 'suspended') audioCtx.resume();
-    document.getElementById('title').innerText = name;
-    document.getElementById('currentLogo').src = logo || "https://i.imgur.com/8Qf6Y0L.png";
-    loader.style.display = "block";
-    qualityMenu.innerHTML = "";
-
-    if(url.includes('.m3u8') && Hls.isSupported()){
-        hls.destroy(); hls = new Hls();
-        hls.loadSource(url); hls.attachMedia(video);
-        hls.on(Hls.Events.MANIFEST_PARSED, () => { video.play(); setupQualityLevels(); });
-    } else {
-        video.src = url; video.play().catch(()=> loader.style.display="none");
-    }
-    pp.className = "fas fa-pause";
-}
-
-function handleControlToggle() { 
-    controls.classList.toggle('show');
-    clearTimeout(hideTimeout);
-    if(controls.classList.contains('show')) hideTimeout = setTimeout(() => controls.classList.remove('show'), 4000);
-}
-
-function toggleQualityMenu() { qualityMenu.style.display = qualityMenu.style.display === "flex" ? "none" : "flex"; }
-function togglePlay() { video.paused ? (video.play(), pp.className="fas fa-pause") : (video.pause(), pp.className="fas fa-play"); }
-function toggleMute() { video.muted = !video.muted; document.getElementById('vBtn').className = video.muted ? "fas fa-volume-mute" : "fas fa-volume-up"; }
-function toggleFull() { document.fullscreenElement ? document.exitFullscreen() : playerArea.requestFullscreen(); }
-function showToast(m) { const t=document.getElementById('toast'); t.innerText=m; t.style.display="block"; setTimeout(()=>t.style.display="none", 2000); }
-
-video.onplaying = () => loader.style.display="none";
-
-const playlistUrl = new URLSearchParams(location.search).get('playlist');
+// Load Playlist
+const playlistUrl = new URLSearchParams(window.location.search).get('playlist');
 if(playlistUrl) {
-    fetch(playlistUrl).then(r=>r.text()).then(data => {
-        let channels=[], c={}, lines=data.split('\n');
+    fetch(playlistUrl).then(r => r.text()).then(data => {
+        let lines = data.split('\n');
+        let c = {};
         lines.forEach(l => {
-            if(l.startsWith('#EXTINF')){
-                c.name = l.split(',')[1]?.trim() || "Unknown";
-                const m = l.match(/tvg-logo="([^"]*)"/);
-                c.logo = m ? m[1] : "https://i.imgur.com/8Qf6Y0L.png";
+            if(l.startsWith('#EXTINF')) {
+                c.name = l.split(',')[1]?.trim();
+                c.logo = l.match(/tvg-logo="([^"]*)"/)?.[1] || "https://i.imgur.com/8Qf6Y0L.png";
             } else if(l.startsWith('http')) {
-                c.url = l.trim(); channels.push({...c}); c={};
+                c.url = l.trim();
+                allChannels.push({...c});
+                c = {};
             }
         });
-        allChannels = channels; render(allChannels);
-        if(allChannels.length > 0) play(allChannels[0].url, allChannels[0].name, allChannels[0].logo);
+        renderChannels();
+        if(allChannels.length > 0) playChannel(allChannels[0]);
     });
 }
-function res() { canvas.width = playerArea.clientWidth; canvas.height = playerArea.clientHeight; }
-window.onresize = res; res();
+
+function renderChannels() {
+    listArea.innerHTML = "";
+    let favs = JSON.parse(localStorage.getItem('iptv_favs') || "[]");
+    let displayList = currentMode === 'all' ? allChannels : favs;
+    
+    document.getElementById('chCount').innerText = displayList.length + " CH";
+
+    displayList.forEach(ch => {
+        let isFav = favs.some(f => f.url === ch.url);
+        let active = video.src === ch.url ? 'active' : '';
+        
+        let div = document.createElement('div');
+        div.className = `channel-card ${active}`;
+        div.innerHTML = `
+            <img src="${ch.logo}" onerror="this.src='https://i.imgur.com/8Qf6Y0L.png'">
+            <div class="name">${ch.name}</div>
+            <i class="fas fa-heart fav-icon ${isFav ? 'is-fav' : ''}" onclick="event.stopPropagation(); toggleFav('${ch.url}')"></i>
+        `;
+        div.onclick = () => playChannel(ch);
+        listArea.appendChild(div);
+    });
+}
+
+function playChannel(ch) {
+    document.getElementById('curName').innerText = ch.name;
+    document.getElementById('videoTitle').innerText = ch.name;
+    document.getElementById('curLogo').src = ch.logo;
+    loader.style.display = "block";
+    
+    if(Hls.isSupported() && ch.url.includes('m3u8')) {
+        hls.destroy();
+        hls = new Hls();
+        hls.loadSource(ch.url);
+        hls.attachMedia(video);
+        hls.on(Hls.Events.MANIFEST_PARSED, () => {
+            video.play();
+            setupQuality();
+        });
+    } else {
+        video.src = ch.url;
+        video.play();
+    }
+    playBtn.innerHTML = '<i class="fas fa-pause"></i>';
+    renderChannels();
+}
+
+function toggleFav(url) {
+    let favs = JSON.parse(localStorage.getItem('iptv_favs') || "[]");
+    let ch = allChannels.find(c => c.url === url);
+    let idx = favs.findIndex(f => f.url === url);
+    
+    if(idx > -1) favs.splice(idx, 1);
+    else favs.push(ch);
+    
+    localStorage.setItem('iptv_favs', JSON.stringify(favs));
+    showToast(idx > -1 ? "Removed from Favorites" : "Added to Favorites");
+    renderChannels();
+}
+
+function setupQuality() {
+    qualityMenu.innerHTML = `<button onclick="setQuality(-1)">Auto Quality</button>`;
+    hls.levels.forEach((lvl, idx) => {
+        qualityMenu.innerHTML += `<button onclick="setQuality(${idx})">${lvl.height}p</button>`;
+    });
+}
+
+function setQuality(idx) {
+    hls.currentLevel = idx;
+    qualityMenu.style.display = "none";
+}
+
+function togglePlay() {
+    if(video.paused) { video.play(); playBtn.innerHTML = '<i class="fas fa-pause"></i>'; }
+    else { video.pause(); playBtn.innerHTML = '<i class="fas fa-play"></i>'; }
+}
+
+function toggleControls() {
+    controls.classList.toggle('show');
+    clearTimeout(controlTimeout);
+    if(controls.classList.contains('show')) {
+        controlTimeout = setTimeout(() => controls.classList.remove('show'), 5000);
+    }
+}
+
+function toggleFull() {
+    if(!document.fullscreenElement) document.getElementById('playerArea').requestFullscreen();
+    else document.exitFullscreen();
+}
+
+function toggleMute() {
+    video.muted = !video.muted;
+    document.getElementById('volIcon').className = video.muted ? "fas fa-volume-mute" : "fas fa-volume-up";
+}
+
+function toggleQuality() {
+    qualityMenu.style.display = qualityMenu.style.display === "flex" ? "none" : "flex";
+}
+
+function switchTab(mode) {
+    currentMode = mode;
+    document.getElementById('allTab').className = mode === 'all' ? 'tab active' : 'tab';
+    document.getElementById('favTab').className = mode === 'fav' ? 'tab active' : 'tab';
+    renderChannels();
+}
+
+function showToast(msg) {
+    let t = document.getElementById('toast');
+    t.innerText = msg;
+    t.style.display = "block";
+    setTimeout(() => t.style.display = "none", 2500);
+}
+
+function share() {
+    if(navigator.share) {
+        navigator.share({ title: 'Best IPTV PRO', url: window.location.href });
+    } else {
+        navigator.clipboard.writeText(window.location.href);
+        showToast("Link Copied to Clipboard!");
+    }
+}
+
+video.onplaying = () => loader.style.display = "none";
+video.onwaiting = () => loader.style.display = "block";
 </script>
 </body>
 </html>
