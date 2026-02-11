@@ -3,58 +3,71 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>Ultimate IPTV & FM Player</title>
+<title>Ultimate IPTV & Radio PRO</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 
 <style>
-:root { --bg: #000; --card: #121212; --accent: #00E5FF; --fav: #FFD700; --text: #fff; }
-* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; }
+:root { --bg: #000; --card: #151515; --accent: #00E5FF; --fav: #FFD700; --text: #fff; }
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, sans-serif; }
 body { background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 
 /* PLAYER AREA */
-.player-wrap { position: relative; width: 100%; background: #000; aspect-ratio: 16/9; flex-shrink: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; touch-action: none; }
+.player-wrap { position: relative; width: 100%; background: #000; aspect-ratio: 16/9; flex-shrink: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; touch-action: none; border-bottom: 2px solid #1a1a1a; }
 video { width: 100%; height: 100%; object-fit: contain; z-index: 5; pointer-events: none; }
 
-/* THICK AUDIO VISUALIZER (Jump Animation) */
+/* MODERN GLOWING VISUALIZER */
 #audioAnim {
     position: absolute; inset: 0; display: none; align-items: flex-end; justify-content: space-around;
-    background: radial-gradient(circle at center, #1a1a1a 0%, #000 100%); z-index: 4; padding: 0 2px;
+    background: linear-gradient(to bottom, #0a0a0a, #000); z-index: 4; padding: 0 5px;
 }
 .v-bar { 
-    width: 8px; /* দাগগুলো মোটা করা হয়েছে */
+    width: 6px; 
     background: linear-gradient(to top, var(--accent), #fff); 
-    border-radius: 4px; 
-    animation: jump 0.6s ease-in-out infinite; /* লাফালাফি এনিমেশন */
-    box-shadow: 0 0 15px var(--accent);
+    border-radius: 10px 10px 0 0; 
+    animation: jump 0.5s ease-in-out infinite alternate; 
+    box-shadow: 0 0 15px rgba(0, 229, 255, 0.6);
+    opacity: 0.8;
 }
 @keyframes jump { 
-    0%, 100% { height: 15%; transform: scaleY(1); } 
-    50% { height: 90%; transform: scaleY(1.1); } 
+    0% { height: 10%; filter: hue-rotate(0deg); } 
+    100% { height: 85%; filter: hue-rotate(20deg); } 
 }
 
-/* HUD & CONTROLS */
-#hud { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(8px); color: white; padding: 25px; border-radius: 25px; z-index: 200; display: none; text-align: center; min-width: 130px; }
-#hud i { display: block; font-size: 2.8rem; margin-bottom: 10px; color: var(--accent); }
+/* HUD (Center Style) */
+#hud { 
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); 
+    background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(10px);
+    color: white; padding: 25px; border-radius: 30px; z-index: 200; 
+    display: none; text-align: center; border: 1px solid rgba(255,255,255,0.1);
+}
+#hud i { display: block; font-size: 3rem; margin-bottom: 10px; color: var(--accent); text-shadow: 0 0 10px var(--accent); }
 
-.controls-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.3); opacity: 0; visibility: hidden; transition: 0.3s; z-index: 100; display: flex; flex-direction: column; justify-content: flex-end; }
+/* CONTROLS */
+.controls-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.4); opacity: 0; visibility: hidden; transition: 0.3s; z-index: 100; display: flex; flex-direction: column; justify-content: flex-end; }
 .controls-overlay.show { opacity: 1; visibility: visible; }
-.bottom-bar { padding: 12px 18px; background: linear-gradient(transparent, rgba(0,0,0,0.95)); display: flex; justify-content: space-between; align-items: center; }
-.mini-btns i, .right-side i { font-size: 1.4rem; color: #fff; cursor: pointer; padding: 8px; }
+.bottom-bar { padding: 15px; background: linear-gradient(transparent, rgba(0,0,0,0.95)); display: flex; justify-content: space-between; align-items: center; }
+.mini-btns i, .right-side i { font-size: 1.5rem; color: #fff; cursor: pointer; padding: 5px 10px; transition: 0.2s; }
+.mini-btns i:active { transform: scale(0.9); color: var(--accent); }
 
-.pop-menu { position: absolute; bottom: 70px; background: rgba(10, 10, 10, 0.9); backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; display: none; flex-direction: column; z-index: 150; min-width: 160px; overflow: hidden; }
-.pop-menu button { background: none; border: none; color: #fff; padding: 14px; text-align: left; font-size: 14px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+/* POPUP MENU */
+.pop-menu { position: absolute; bottom: 75px; background: rgba(15, 15, 15, 0.95); backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 15px; display: none; flex-direction: column; z-index: 150; min-width: 170px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+.pop-menu button { background: none; border: none; color: #fff; padding: 15px 20px; text-align: left; font-size: 14px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.05); }
+.pop-menu button:hover { background: rgba(0, 229, 255, 0.1); }
 
-/* UI LIST */
-.info { padding: 15px; display: flex; justify-content: space-between; align-items: center; background: #080808; border-bottom: 1px solid #1a1a1a; }
+/* UI ELEMENTS */
+.info { padding: 15px; display: flex; justify-content: space-between; align-items: center; background: #0a0a0a; border-bottom: 1px solid #1a1a1a; }
 .actions { display: flex; padding: 15px 0; background: #050505; border-bottom: 1px solid #1a1a1a; }
-.actions div { flex: 1; text-align: center; font-size: 0.9rem; color: #aaa; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
-.actions div.active-tab { color: var(--accent); font-weight: bold; }
+.actions div { flex: 1; text-align: center; font-size: 0.9rem; color: #aaa; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.3s; }
+.actions div i { font-size: 1.1rem; }
+.actions div:active { color: var(--accent); }
+.active-tab { color: var(--accent) !important; font-weight: bold; text-shadow: 0 0 5px var(--accent); }
 
-.list { flex: 1; overflow-y: auto; padding: 12px; }
-.row { display: flex; align-items: center; gap: 15px; background: var(--card); padding: 14px; border-radius: 15px; margin-bottom: 12px; border: 1px solid #1a1a1a; transition: 0.3s; }
-.row.active { border-color: var(--accent); background: rgba(0, 229, 255, 0.12); box-shadow: 0 0 10px rgba(0, 229, 255, 0.1); }
-.star-btn { font-size: 1.2rem; color: #444; }
+.list { flex: 1; overflow-y: auto; padding: 12px; background: #000; }
+.row { display: flex; align-items: center; gap: 15px; background: var(--card); padding: 14px; border-radius: 16px; margin-bottom: 12px; border: 1px solid #222; transition: 0.3s; position: relative; }
+.row.active { border-color: var(--accent); background: rgba(0, 229, 255, 0.08); }
+.row.active::before { content: ''; position: absolute; left: 0; top: 20%; height: 60%; width: 4px; background: var(--accent); border-radius: 0 5px 5px 0; }
+.star-btn { font-size: 1.3rem; color: #333; transition: 0.3s; }
 .star-btn.is-fav { color: var(--fav); }
 </style>
 </head>
@@ -67,8 +80,8 @@ video { width: 100%; height: 100%; object-fit: contain; z-index: 5; pointer-even
     <div class="controls-overlay" id="controls">
         <div class="pop-menu" id="popMenu"></div>
         <div class="bottom-bar">
-            <div style="display:flex; gap:12px;"><i class="fas fa-play" id="pp" onclick="togglePlay(event)"></i><i class="fas fa-redo" onclick="location.reload()"></i></div>
-            <div style="display:flex; gap:12px;" class="right-side">
+            <div class="mini-btns"><i class="fas fa-play" id="pp" onclick="togglePlay(event)"></i><i class="fas fa-redo" onclick="location.reload()"></i></div>
+            <div class="right-side">
                 <i class="fas fa-sliders-h" id="btnScale" onclick="showScalingMenu(event)"></i>
                 <i class="fas fa-cog" id="btnQuality" onclick="showQualityMenu(event)"></i>
                 <i class="fas fa-expand" onclick="toggleFull(event)"></i>
@@ -79,10 +92,10 @@ video { width: 100%; height: 100%; object-fit: contain; z-index: 5; pointer-even
 
 <div class="info">
     <div style="display:flex; align-items:center; gap:12px;">
-        <img id="currentLogo" style="width:45px; height:45px; border-radius:50%; object-fit:cover;" src="https://i.imgur.com/8Qf6Y0L.png">
-        <div><h3 id="title" style="font-size:15px; color:#fff;">Select Station</h3><small id="mediaType" style="color:var(--accent); letter-spacing:1px;">LIVE</small></div>
+        <img id="currentLogo" style="width:48px; height:48px; border-radius:12px; object-fit:cover; border: 1px solid #222;" src="https://i.imgur.com/8Qf6Y0L.png">
+        <div><h3 id="title" style="font-size:15px; color:#fff; font-weight: 600;">Select Station</h3><small id="mediaType" style="color:var(--accent); font-weight: bold; letter-spacing: 0.5px;">LIVE</small></div>
     </div>
-    <div id="count" style="font-size:12px; color:var(--accent)">0 CH</div>
+    <div id="count" style="font-size:12px; color:var(--accent); background: rgba(0,229,255,0.1); padding: 4px 10px; border-radius: 20px;">0 CH</div>
 </div>
 
 <div class="actions">
@@ -97,15 +110,15 @@ video { width: 100%; height: 100%; object-fit: contain; z-index: 5; pointer-even
 const video=document.getElementById('video'), playerArea=document.getElementById('playerArea'), popMenu=document.getElementById('popMenu'), controls=document.getElementById('controls'), listArea=document.getElementById('list'), audioAnim=document.getElementById('audioAnim');
 let hls=new Hls(), allChannels=[], isFavView=false, currentPlayingUrl = '', brightness = 1, hideTimeout;
 
-// ২০টি মোটা বার তৈরি করা হয়েছে
-for(let i=0; i<20; i++) {
+// ২৫টি স্টাইলিশ বার তৈরি
+for(let i=0; i<25; i++) {
     let bar = document.createElement('div');
     bar.className = 'v-bar';
-    bar.style.animationDelay = (Math.random() * 0.5) + 's';
+    bar.style.animationDelay = (Math.random() * 0.6) + 's';
     audioAnim.appendChild(bar);
 }
 
-// --- সোয়াইপ এবং HUD লজিক ---
+// --- সোয়াইপ কন্ট্রোল ---
 let startY, startVal, isLeft;
 playerArea.addEventListener('touchstart', e => {
     startY = e.touches[0].clientY;
@@ -129,7 +142,7 @@ playerArea.addEventListener('touchmove', e => {
 });
 playerArea.addEventListener('touchend', () => setTimeout(() => document.getElementById('hud').style.display='none', 500));
 
-// --- প্লে এবং হাইলাইট লজিক ---
+// --- প্লে ও লিস্ট লজিক ---
 function play(url, name, logo) {
     currentPlayingUrl = url;
     document.getElementById('title').innerText = name;
@@ -150,7 +163,6 @@ function play(url, name, logo) {
     render(); 
 }
 
-// --- ব্যাক বাটন এবং ভিউ ফিক্স ---
 function render() {
     let arr = isFavView ? JSON.parse(localStorage.getItem('my_iptv_favs') || "[]") : allChannels;
     listArea.innerHTML = "";
@@ -168,10 +180,18 @@ function render() {
     });
 }
 
+// ফিক্সড ফেভারিট ভিউ: এটি এখন আর অন্য পেজে পাঠাবে না
 function toggleFavoriteView() {
-    isFavView = !isFavView; // এটি কেবল মোড পরিবর্তন করবে
-    document.getElementById('favBtnTab').classList.toggle('active-tab', isFavView);
-    render(); // এটি index.html এ যাবে না, শুধু লিস্টের ডেটা আপডেট করবে
+    isFavView = !isFavView;
+    const btn = document.getElementById('favBtnTab');
+    if(isFavView) {
+        btn.classList.add('active-tab');
+        btn.innerHTML = '<i class="fas fa-list"></i> All List'; // অল লিস্টে যাওয়ার অপশন
+    } else {
+        btn.classList.remove('active-tab');
+        btn.innerHTML = '<i class="fas fa-star"></i> My List';
+    }
+    render();
 }
 
 function toggleFav(ch) {
@@ -182,7 +202,7 @@ function toggleFav(ch) {
     render();
 }
 
-// --- কন্ট্রোলস ---
+// --- মেনু ও কন্ট্রোলস ---
 playerArea.onclick = () => {
     if(popMenu.style.display === 'flex') { popMenu.style.display = 'none'; return; }
     controls.classList.toggle('show');
@@ -209,15 +229,15 @@ async function toggleFull(e) {
     e.stopPropagation();
     if (!document.fullscreenElement) {
         if (playerArea.requestFullscreen) await playerArea.requestFullscreen();
-        if (screen.orientation && screen.orientation.lock) await screen.orientation.lock('landscape').catch(()=>{});
     } else { document.exitFullscreen(); }
 }
 
 function setScaling(m, e) { e.stopPropagation(); video.style.objectFit = m; popMenu.style.display = 'none'; }
 function setQuality(i, e) { e.stopPropagation(); hls.currentLevel = i; popMenu.style.display = 'none'; }
 function togglePlay(e) { e.stopPropagation(); video.paused ? (video.play(), document.getElementById('pp').className="fas fa-pause") : (video.pause(), document.getElementById('pp').className="fas fa-play"); }
-function copyShareLink() { navigator.clipboard.writeText(location.href); alert("Share Link Copied!"); }
+function copyShareLink() { navigator.clipboard.writeText(location.href); alert("Copied!"); }
 
+// প্লেলিস্ট লোড
 const playlistUrl = new URLSearchParams(location.search).get('playlist');
 if(playlistUrl) {
     fetch(playlistUrl).then(r=>r.text()).then(data => {
