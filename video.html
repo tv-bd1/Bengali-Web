@@ -16,12 +16,8 @@ body { background: var(--bg); color: var(--text); height: 100vh; display: flex; 
 .player-wrap { position: relative; width: 100%; background: #000; aspect-ratio: 16/9; flex-shrink: 0; overflow: hidden; }
 video { width: 100%; height: 100%; object-fit: contain; z-index: 5; pointer-events: none; }
 
-/* AUDIO VISUALIZER - FULL SCREEN BOUNCE */
+/* অডিও ভিজুয়ালাইজার - পুরো স্ক্রিন জুড়ে লম্বালম্বি লাফাবে */
 #visualizer { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 4; pointer-events: none; background: #050505; display: none; }
-
-/* HUD */
-#hud { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.7); color: white; padding: 15px 25px; border-radius: 10px; z-index: 200; display: none; text-align: center; pointer-events: none; }
-#hud i { display: block; font-size: 2.5rem; margin-bottom: 8px; color: var(--accent); }
 
 /* CONTROLS */
 .controls-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.4); opacity: 0; visibility: hidden; transition: 0.3s; z-index: 100; display: flex; flex-direction: column; justify-content: flex-end; }
@@ -30,12 +26,13 @@ video { width: 100%; height: 100%; object-fit: contain; z-index: 5; pointer-even
 .mini-btns, .right-side { display: flex; align-items: center; gap: 20px; }
 .mini-btns i, .right-side i { font-size: 1.4rem; cursor: pointer; color: #fff; }
 
-/* POPUP MENU - POSITION FIXED */
-.pop-menu { position: absolute; bottom: 65px; right: 10px; background: rgba(20,20,20,0.95); border: 1px solid #333; border-radius: 10px; display: none; flex-direction: column; z-index: 150; min-width: 140px; max-height: 180px; overflow-y: auto; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
-.pop-menu button { background: none; border: none; color: white; padding: 10px 15px; cursor: pointer; border-bottom: 1px solid #222; text-align: left; font-size: 13px; }
+/* পপ-আপ মেনু পজিশন ফিক্স - বাটনের উপরে শো করবে */
+.pop-menu { position: absolute; bottom: 70px; background: rgba(25,25,25,0.98); border: 1px solid #333; border-radius: 12px; display: none; flex-direction: column; z-index: 150; min-width: 150px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+.pop-menu button { background: none; border: none; color: white; padding: 12px 15px; cursor: pointer; border-bottom: 1px solid #222; text-align: left; font-size: 14px; }
+.pop-menu button:hover { background: rgba(0, 229, 255, 0.1); }
 
 /* UI ELEMENTS */
-.info { padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; background: #080808; border-bottom: 1px solid #1a1a1a; pointer-events: none; } /* বর্ডার ও ক্লিক রিমুভ করা হয়েছে */
+.info { padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; background: #080808; border-bottom: 1px solid #1a1a1a; pointer-events: none; }
 .mini-logo { width: 45px; height: 45px; border-radius: 10px; object-fit: cover; background: #111; }
 .actions { display: flex; padding: 15px 0; background: #050505; border-bottom: 1px solid #1a1a1a; }
 .actions div { flex: 1; text-align: center; font-size: 0.9rem; color: #bbb; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; position: relative; }
@@ -48,19 +45,14 @@ video { width: 100%; height: 100%; object-fit: contain; z-index: 5; pointer-even
 .row.active { border-color: var(--accent); background: rgba(0, 229, 255, 0.05); }
 .list-logo { width: 45px; height: 45px; border-radius: 8px; object-fit: cover; }
 .name { flex: 1; font-size: 1rem; color: #fff; }
-.star-btn { font-size: 1.3rem; color: #444; padding: 5px; }
-.star-btn.is-fav { color: var(--fav); }
 </style>
 </head>
 <body>
 
 <div class="player-wrap" id="playerArea">
-    <div id="hud"><i id="hudIcon"></i><span id="hudValue">0%</span></div>
     <canvas id="visualizer"></canvas>
     <video id="video" playsinline crossorigin="anonymous"></video>
-    
     <div class="pop-menu" id="popMenu"></div>
-    
     <div class="controls-overlay" id="controls">
         <div class="bottom-bar">
             <div class="mini-btns">
@@ -68,8 +60,8 @@ video { width: 100%; height: 100%; object-fit: contain; z-index: 5; pointer-even
                 <i class="fas fa-redo" onclick="location.reload()"></i>
             </div>
             <div class="right-side">
-                <i class="fas fa-sliders-h" onclick="showScalingMenu(event)"></i>
-                <i class="fas fa-cog" onclick="showQualityMenu(event)"></i>
+                <i class="fas fa-sliders-h" id="scaleBtn" onclick="showScalingMenu(event)"></i>
+                <i class="fas fa-cog" id="qualityBtn" onclick="showQualityMenu(event)"></i>
                 <i class="fas fa-expand" onclick="toggleFull(event)"></i>
             </div>
         </div>
@@ -79,7 +71,7 @@ video { width: 100%; height: 100%; object-fit: contain; z-index: 5; pointer-even
 <div class="info">
     <div style="display:flex; align-items:center; gap:12px;">
         <img id="currentLogo" class="mini-logo" src="https://i.imgur.com/8Qf6Y0L.png">
-        <div><h3 id="title" style="font-size:16px;">Select Channel</h3><small style="color:var(--accent); font-weight:bold;">LIVE</small></div>
+        <div><h3 id="title" style="font-size:16px;">Select Channel</h3><small style="color:var(--accent); font-weight:bold;">LIVE STREAM</small></div>
     </div>
     <div id="count" style="font-size:13px; color:var(--accent); background:rgba(0,229,255,0.1); padding:4px 10px; border-radius:5px;">0 CH</div>
 </div>
@@ -94,39 +86,33 @@ video { width: 100%; height: 100%; object-fit: contain; z-index: 5; pointer-even
 
 <script>
 const video=document.getElementById('video'), playerArea=document.getElementById('playerArea'), popMenu=document.getElementById('popMenu'), controls=document.getElementById('controls'), listArea=document.getElementById('list'), canvas=document.getElementById('visualizer'), ctx=canvas.getContext('2d');
-let hls=new Hls(), allChannels=[], isFavView=false, hideTimeout, lastTap = 0;
-let audioCtx, analyser, dataArray;
+let hls=new Hls(), allChannels=[], isFavView=false, hideTimeout, lastTap = 0, audioCtx, analyser, dataArray;
 
-// অডিও ভিজুয়ালাইজার লজিক - স্লো এবং ফুল স্ক্রিন বাউন্স
+// অডিও ভিজুয়ালাইজার লজিক
 function initVisualizer() {
     if (audioCtx) return;
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     analyser = audioCtx.createAnalyser();
     const source = audioCtx.createMediaElementSource(video);
     source.connect(analyser); analyser.connect(audioCtx.destination);
-    analyser.fftSize = 64;
+    analyser.fftSize = 128;
     dataArray = new Uint8Array(analyser.frequencyBinCount);
     draw();
 }
 
-let particles = [];
 function draw() {
     requestAnimationFrame(draw);
     if(!analyser || canvas.style.display === 'none') return;
     analyser.getByteFrequencyData(dataArray);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    let avg = dataArray.reduce((a,b) => a+b) / dataArray.length;
-    let speed = avg / 50;
-
-    // স্লাইড বা লাফানোর ইফেক্ট (স্লো মুভমেন্ট)
+    let barWidth = (canvas.width / dataArray.length) * 2.5;
+    let x = 0;
     for(let i=0; i<dataArray.length; i++) {
-        let barHeight = (dataArray[i]/255) * canvas.height * 0.8;
-        let x = (canvas.width / dataArray.length) * i;
-        ctx.fillStyle = `rgba(0, 229, 255, 0.6)`;
-        // ডাইনে বামে ওপর নিচে মুভমেন্ট লজিক
-        let offset = Math.sin(Date.now() * 0.001 + i) * 20; 
-        ctx.fillRect(x + offset, (canvas.height - barHeight) / 2 + offset, 15, barHeight);
+        let barHeight = (dataArray[i]/255) * canvas.height;
+        ctx.fillStyle = `rgba(0, 229, 255, 0.8)`;
+        // পুরো হাইট জুড়ে লম্বা লাফানো
+        ctx.fillRect(x, (canvas.height - barHeight) / 2, barWidth - 2, barHeight);
+        x += barWidth;
     }
 }
 
@@ -134,6 +120,33 @@ video.onloadedmetadata = () => {
     canvas.style.display = (video.videoHeight === 0) ? "block" : "none";
     if(canvas.style.display === "block") initVisualizer();
 };
+
+// মেনু পজিশন ফিক্স - বাটনের ঠিক উপরে শো করবে
+function showScalingMenu(e) {
+    e.stopPropagation();
+    const btn = document.getElementById('scaleBtn').getBoundingClientRect();
+    const player = playerArea.getBoundingClientRect();
+    popMenu.style.left = (btn.left - player.left) + 'px';
+    popMenu.style.right = 'auto';
+    popMenu.innerHTML = `<button onclick="setScaling('contain')">Fit Screen</button><button onclick="setScaling('fill')">Zoom Fill</button><button onclick="setScaling('cover')">Stretch</button>`;
+    popMenu.style.display = 'flex';
+}
+
+function showQualityMenu(e) {
+    e.stopPropagation();
+    const btn = document.getElementById('qualityBtn').getBoundingClientRect();
+    const player = playerArea.getBoundingClientRect();
+    popMenu.style.left = 'auto';
+    popMenu.style.right = (player.right - btn.right) + 'px';
+    popMenu.innerHTML = `<button onclick="setQuality(-1)">Auto Quality</button>`;
+    if(hls.levels) hls.levels.forEach((l, i) => {
+        popMenu.innerHTML += `<button onclick="setQuality(${i})">${l.height || i}p Resolution</button>`;
+    });
+    popMenu.style.display = 'flex';
+}
+
+function setScaling(t) { video.style.objectFit = t; popMenu.style.display = 'none'; }
+function setQuality(i) { hls.currentLevel = i; popMenu.style.display = 'none'; }
 
 function play(url, name, logo) {
     if(audioCtx?.state === 'suspended') audioCtx.resume();
@@ -148,78 +161,36 @@ function play(url, name, logo) {
     render();
 }
 
-// ট্যাব সুইচিং কালার ফিক্স
-function switchTab(type, el) {
-    document.querySelectorAll('.actions div').forEach(d => d.classList.remove('active-tab'));
-    el.classList.add('active-tab');
-    isFavView = (type === 'fav');
-    render();
+function toggleFull(e) {
+    if(e) e.stopPropagation();
+    if (!document.fullscreenElement) {
+        playerArea.requestFullscreen();
+        video.style.objectFit = 'fill';
+    } else {
+        document.exitFullscreen();
+        video.style.objectFit = 'contain';
+    }
 }
 
-function render() {
-    let arr = isFavView ? JSON.parse(localStorage.getItem('my_iptv_favs') || "[]") : allChannels;
-    listArea.innerHTML = "";
-    document.getElementById('count').innerText = arr.length + " CH";
-    arr.forEach(ch => {
-        const isActive = (video.src === ch.url || hls.url === ch.url);
-        const d = document.createElement('div');
-        d.className = `row ${isActive ? 'active' : ''}`;
-        d.innerHTML = `<img src="${ch.logo}" class="list-logo" onerror="this.src='https://i.imgur.com/8Qf6Y0L.png'"><div class="name">${ch.name}</div><i class="fas fa-star star-btn"></i>`;
-        d.onclick = () => play(ch.url, ch.name, ch.logo);
-        listArea.appendChild(d);
-    });
-}
+function togglePlay(e) { if(e) e.stopPropagation(); video.paused ? video.play() : video.pause(); }
 
-// কন্ট্রোল হাইড লজিক - ডাবল ট্যাপ ও ৩ সেকেন্ড
-function hideAllUI() {
-    controls.classList.remove('show');
-    popMenu.style.display = 'none';
-}
-
-playerArea.addEventListener('click', (e) => {
+playerArea.onclick = () => {
     let now = Date.now();
-    if (now - lastTap < 300) { // Double Tap
-        hideAllUI();
-    } else { // Single Tap
-        if(popMenu.style.display === 'flex') {
+    if (now - lastTap < 300) { 
+        controls.classList.remove('show'); 
+        popMenu.style.display = 'none';
+    } else {
+        if(popMenu.style.display === 'flex') { popMenu.style.display = 'none'; return; }
+        controls.classList.toggle('show');
+        clearTimeout(hideTimeout);
+        if(controls.classList.contains('show')) hideTimeout = setTimeout(() => {
+            controls.classList.remove('show');
             popMenu.style.display = 'none';
-        } else {
-            controls.classList.toggle('show');
-            clearTimeout(hideTimeout);
-            if(controls.classList.contains('show')) hideTimeout = setTimeout(hideAllUI, 3000);
-        }
+        }, 3000);
     }
     lastTap = now;
-});
+};
 
-function showScalingMenu(e) {
-    e.stopPropagation();
-    popMenu.style.right = 'auto'; popMenu.style.left = '10px'; // পজিশন ফিক্স
-    popMenu.innerHTML = `<button onclick="setScaling('contain')">Fit Screen</button><button onclick="setScaling('cover')">Zoom Fill</button><button onclick="setScaling('fill')">Stretch</button>`;
-    popMenu.style.display = 'flex';
-}
-
-function showQualityMenu(e) {
-    e.stopPropagation();
-    popMenu.style.left = 'auto'; popMenu.style.right = '10px'; // পজিশন ফিক্স
-    popMenu.innerHTML = `<button onclick="setQuality(-1)">Auto</button>`;
-    if(hls.levels) hls.levels.forEach((l, i) => popMenu.innerHTML += `<button onclick="setQuality(${i})">${l.height || i}p</button>`);
-    popMenu.style.display = 'flex';
-}
-
-function setScaling(t) { video.style.objectFit = t; popMenu.style.display = 'none'; }
-function setQuality(i) { hls.currentLevel = i; popMenu.style.display = 'none'; }
-function togglePlay(e) { e.stopPropagation(); video.paused ? video.play() : video.pause(); }
-video.onplay = () => document.getElementById('pp').className = "fas fa-pause";
-video.onpause = () => document.getElementById('pp').className = "fas fa-play";
-
-function toggleFull(e) {
-    e.stopPropagation();
-    if (!document.fullscreenElement) playerArea.requestFullscreen();
-    else document.exitFullscreen();
-}
-
-// ইনিশিয়াল সেটিংস
 const playlistUrl = new URLSearchParams(location.search).get('playlist');
 if(playlistUrl) {
     fetch(playlistUrl).then(r=>r.text()).then(data => {
@@ -233,8 +204,31 @@ if(playlistUrl) {
             }
         });
         render();
+        if(allChannels.length > 0) play(allChannels[0].url, allChannels[0].name, allChannels[0].logo);
     });
 }
+
+function render() {
+    let arr = isFavView ? JSON.parse(localStorage.getItem('my_iptv_favs') || "[]") : allChannels;
+    listArea.innerHTML = "";
+    document.getElementById('count').innerText = arr.length + " CH";
+    arr.forEach(ch => {
+        const isActive = (video.src === ch.url || hls.url === ch.url);
+        const d = document.createElement('div');
+        d.className = `row ${isActive ? 'active' : ''}`;
+        d.innerHTML = `<img src="${ch.logo}" class="list-logo" onerror="this.src='https://i.imgur.com/8Qf6Y0L.png'"><div class="name">${ch.name}</div>`;
+        d.onclick = () => play(ch.url, ch.name, ch.logo);
+        listArea.appendChild(d);
+    });
+}
+
+function switchTab(type, el) {
+    document.querySelectorAll('.actions div').forEach(d => d.classList.remove('active-tab'));
+    el.classList.add('active-tab');
+    isFavView = (type === 'fav');
+    render();
+}
+
 window.onresize = () => { canvas.width = playerArea.clientWidth; canvas.height = playerArea.clientHeight; };
 window.dispatchEvent(new Event('resize'));
 </script>
