@@ -3,57 +3,80 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>IPTV PRO Player</title>
+<title>Ultimate IPTV Player PRO</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 
 <style>
-:root { --accent: #00E5FF; --fav: #FFD700; --text: #333; --bg: #f4f4f4; }
+:root { --bg: #000; --card: #121212; --accent: #00E5FF; --fav: #FFD700; --text: #fff; }
 * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; }
-
-/* ব্যাকগ্রাউন্ড এখন হালকা ধূসর, যাতে কালো ভাব না থাকে */
-body { background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
+body { background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 
 /* PLAYER AREA */
-.player-wrap { position: relative; width: 100%; background: #000; aspect-ratio: 16/9; z-index: 10; }
-video { width: 100%; height: 100%; object-fit: contain; }
+.player-wrap { position: relative; width: 100%; background: #000; aspect-ratio: 16/9; flex-shrink: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; touch-action: none; }
+video { width: 100%; height: 100%; object-fit: contain; z-index: 5; pointer-events: none; transition: filter 0.1s ease; }
+
+/* SWIPE HUD */
+#hud { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.8); color: white; padding: 15px 25px; border-radius: 12px; z-index: 200; display: none; text-align: center; pointer-events: none; min-width: 100px; }
+#hud i { display: block; font-size: 2.5rem; margin-bottom: 8px; color: var(--accent); }
 
 /* CONTROLS */
 .controls-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.3); opacity: 0; visibility: hidden; transition: 0.3s; z-index: 100; display: flex; flex-direction: column; justify-content: flex-end; }
 .controls-overlay.show { opacity: 1; visibility: visible; }
-.bottom-bar { padding: 10px 15px; background: linear-gradient(transparent, rgba(0,0,0,0.8)); display: flex; justify-content: space-between; align-items: center; }
+.bottom-bar { padding: 10px 15px; background: linear-gradient(transparent, rgba(0,0,0,0.9)); display: flex; justify-content: space-between; align-items: center; padding-bottom: env(safe-area-inset-bottom); position: relative; z-index: 110; }
 .mini-btns, .right-side { display: flex; align-items: center; gap: 15px; }
-.mini-btns i, .right-side i { font-size: 1.2rem; cursor: pointer; color: #fff; padding: 5px; }
+.mini-btns i, .right-side i { font-size: 1.3rem; cursor: pointer; color: #fff; padding: 5px; }
 
-/* POPUP MENU */
-.pop-menu { position: absolute; bottom: 55px; background: rgba(255,255,255,0.95); border-radius: 8px; display: none; flex-direction: column; z-index: 150; min-width: 130px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); overflow: hidden; }
-.pop-menu button { background: none; border: none; color: #000; padding: 10px 15px; cursor: pointer; border-bottom: 1px solid #eee; text-align: left; font-size: 14px; font-weight: 500; }
+/* POPUP MENU - হালকা ব্যাকগ্রাউন্ড এবং অটো হাইট */
+.pop-menu { 
+    position: absolute; 
+    bottom: 55px; 
+    background: rgba(255, 255, 255, 0.15); /* অনেক হালকা ব্যাকগ্রাউন্ড */
+    backdrop-filter: blur(15px); /* ঝাপসা ইফেক্ট */
+    -webkit-backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px; 
+    display: none; 
+    flex-direction: column; 
+    z-index: 150; 
+    min-width: 140px; 
+    height: auto; /* অটো হাইট */
+    max-height: 250px; /* বেশি আইটেম হলে স্ক্রল হবে */
+    overflow-y: auto;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4); 
+}
+.pop-menu button { 
+    background: none; border: none; 
+    color: #fff; 
+    padding: 12px 15px; cursor: pointer; 
+    border-bottom: 1px solid rgba(255,255,255,0.1); 
+    text-align: left; font-size: 13px; font-weight: 500; 
+}
 .pop-menu button:last-child { border-bottom: none; }
-.pop-menu button:hover { background: var(--accent); }
+.pop-menu button:active { background: var(--accent); color: #000; }
 
-/* INFO AREA */
-.info { padding: 15px; background: #fff; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #ddd; }
-.mini-logo { width: 45px; height: 45px; border-radius: 50%; border: 1px solid #eee; }
+/* UI ELEMENTS */
+.info { padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; background: #080808; border-bottom: 1px solid #1a1a1a; }
+.mini-logo { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; }
+.actions { display: flex; padding: 15px 0; background: #050505; border-bottom: 1px solid #1a1a1a; }
+.actions div { flex: 1; text-align: center; font-size: 0.85rem; color: #bbb; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
 
-/* LIST AREA - অটো হাইট সেট করা হয়েছে */
-.list { padding: 12px; display: flex; flex-direction: column; gap: 10px; height: auto; }
-.row { display: flex; align-items: center; gap: 15px; background: #fff; padding: 12px; border-radius: 10px; border: 1px solid #ddd; transition: 0.2s; cursor: pointer; }
-.row.active { border-color: var(--accent); background: #e0faff; }
-.list-logo { width: 40px; height: 40px; border-radius: 6px; object-fit: cover; }
-.name { flex: 1; font-size: 1rem; color: #333; font-weight: 500; }
-.star-btn { font-size: 1.2rem; color: #ccc; }
+/* LIST */
+.list { flex: 1; overflow-y: auto; padding: 12px; background: var(--bg); padding-bottom: 80px; }
+.row { display: flex; align-items: center; gap: 15px; background: var(--card); padding: 12px; border-radius: 12px; margin-bottom: 10px; border: 1px solid #1a1a1a; }
+.row.active { border-color: var(--accent); background: rgba(0, 229, 255, 0.05); }
+.list-logo { width: 45px; height: 45px; border-radius: 8px; object-fit: cover; }
+.name { flex: 1; font-size: 0.95rem; color: #fff; }
+.star-btn { font-size: 1.2rem; color: #444; padding: 5px; }
 .star-btn.is-fav { color: var(--fav); }
 
-/* HUD FOR SWIPE */
-#hud { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.7); color: #fff; padding: 12px 20px; border-radius: 10px; z-index: 200; display: none; text-align: center; }
-
-#toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #333; color: #fff; padding: 8px 15px; border-radius: 20px; font-size: 13px; display: none; z-index: 1000; }
+#toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: var(--accent); color: #000; padding: 8px 18px; border-radius: 20px; font-size: 12px; display: none; z-index: 1000; font-weight: bold; }
 </style>
 </head>
 <body>
 
 <div class="player-wrap" id="playerArea">
-    <div id="hud"><i id="hudIcon"></i> <span id="hudValue">0%</span></div>
+    <div id="hud"><i id="hudIcon"></i><span id="hudValue">0%</span></div>
     <video id="video" playsinline crossorigin="anonymous"></video>
     <div class="pop-menu" id="popMenu"></div>
     <div class="controls-overlay" id="controls">
@@ -74,9 +97,15 @@ video { width: 100%; height: 100%; object-fit: contain; }
 <div class="info">
     <div style="display:flex; align-items:center; gap:12px;">
         <img id="currentLogo" class="mini-logo" src="https://i.imgur.com/8Qf6Y0L.png">
-        <div><h3 id="title" style="font-size:16px;">Select Channel</h3><small style="color:var(--accent); font-weight:bold;">LIVE</small></div>
+        <div><h3 id="title" style="font-size:15px;">Select Channel</h3><small style="color:var(--accent); font-weight:bold;">LIVE</small></div>
     </div>
-    <div id="count" style="font-size:13px; color:#666;">0 Channels</div>
+    <div id="count" style="font-size:12px; color:var(--accent)">0 CH</div>
+</div>
+
+<div class="actions">
+    <div onclick="copyShareLink()"><i class="fas fa-share-alt"></i> Share</div>
+    <div id="favBtnTab" onclick="toggleFavoriteView()"><i class="fas fa-star"></i> My List</div>
+    <div onclick="window.open('https://t.me/bestiptvlive')"><i class="fab fa-telegram-plane"></i> Telegram</div>
 </div>
 
 <div class="list" id="list"></div>
@@ -86,13 +115,12 @@ video { width: 100%; height: 100%; object-fit: contain; }
 const video=document.getElementById('video'), playerArea=document.getElementById('playerArea'), popMenu=document.getElementById('popMenu'), controls=document.getElementById('controls'), listArea=document.getElementById('list');
 let hls=new Hls(), allChannels=[], isFavView=false, startY, startVal, isLeft, hideTimeout, brightness = 1;
 
-// পপআপ পজিশন
 function alignMenu(targetId) {
     const btn = document.getElementById(targetId);
     const pRect = playerArea.getBoundingClientRect();
     const bRect = btn.getBoundingClientRect();
-    let leftPos = bRect.left - pRect.left - 50;
-    leftPos = Math.max(10, Math.min(leftPos, pRect.width - 140));
+    let leftPos = bRect.left - pRect.left - 60;
+    leftPos = Math.max(10, Math.min(leftPos, pRect.width - 150));
     popMenu.style.left = leftPos + "px";
     popMenu.style.display = 'flex';
 }
@@ -116,10 +144,9 @@ function showQualityMenu(e) {
     alignMenu('btnQuality');
 }
 
-function setScaling(m, e) { if(e) e.stopPropagation(); video.style.objectFit = m; popMenu.style.display = 'none'; showToast("Mode: "+m); }
-function setQuality(i, e) { if(e) e.stopPropagation(); hls.currentLevel = i; popMenu.style.display = 'none'; }
+function setScaling(m, e) { if(e) e.stopPropagation(); video.style.objectFit = m; popMenu.style.display = 'none'; showToast("Scale: "+m.toUpperCase()); }
+function setQuality(i, e) { if(e) e.stopPropagation(); hls.currentLevel = i; popMenu.style.display = 'none'; showToast("Setting Quality..."); }
 
-// সোয়াইপ কন্ট্রোল
 playerArea.addEventListener('touchstart', e => {
     startY = e.touches[0].clientY;
     isLeft = e.touches[0].clientX < playerArea.clientWidth / 2;
@@ -135,7 +162,8 @@ playerArea.addEventListener('touchmove', e => {
     if(isLeft) {
         brightness = Math.min(Math.max(startVal + delta, 0.3), 1.8);
         video.style.filter = `brightness(${brightness})`;
-        icon.className = 'fas fa-sun'; val.innerText = Math.round(brightness * 50) + "%";
+        icon.className = 'fas fa-sun';
+        val.innerText = Math.round(brightness * 50) + "%";
     } else {
         let v = Math.min(Math.max(startVal + delta, 0), 1);
         video.volume = v;
@@ -146,7 +174,13 @@ playerArea.addEventListener('touchmove', e => {
 
 playerArea.addEventListener('touchend', () => setTimeout(() => document.getElementById('hud').style.display='none', 500));
 
-// প্লে ফাংশন
+function toggleFull(e) {
+    if(e) e.stopPropagation();
+    if (!document.fullscreenElement) {
+        playerArea.requestFullscreen().then(() => { video.style.objectFit = 'fill'; });
+    } else { document.exitFullscreen(); video.style.objectFit = 'contain'; }
+}
+
 function play(url, name, logo) {
     document.getElementById('title').innerText = name;
     document.getElementById('currentLogo').src = logo || "https://i.imgur.com/8Qf6Y0L.png";
@@ -160,29 +194,46 @@ function play(url, name, logo) {
 }
 
 function render() {
+    let arr = isFavView ? JSON.parse(localStorage.getItem('my_iptv_favs') || "[]") : allChannels;
     listArea.innerHTML = "";
-    document.getElementById('count').innerText = allChannels.length + " Channels";
-    allChannels.forEach(ch => {
+    document.getElementById('count').innerText = arr.length + " CH";
+    arr.forEach(ch => {
+        const favs = JSON.parse(localStorage.getItem('my_iptv_favs') || "[]");
+        const isF = favs.some(f => f.url === ch.url);
         const d = document.createElement('div');
-        d.className = `row ${(hls.url === ch.url) ? 'active' : ''}`;
-        d.innerHTML = `<img src="${ch.logo}" class="list-logo" onerror="this.src='https://i.imgur.com/8Qf6Y0L.png'"><div class="name">${ch.name}</div><i class="fas fa-star star-btn"></i>`;
+        d.className = `row ${(video.src === ch.url || hls.url === ch.url) ? 'active' : ''}`;
+        d.innerHTML = `<img src="${ch.logo}" class="list-logo" onerror="this.src='https://i.imgur.com/8Qf6Y0L.png'"><div class="name">${ch.name}</div><i class="fas fa-star star-btn ${isF ? 'is-fav' : ''}"></i>`;
         d.onclick = () => play(ch.url, ch.name, ch.logo);
+        d.querySelector('.star-btn').onclick = (e) => { e.stopPropagation(); toggleFav(ch); };
         listArea.appendChild(d);
     });
+}
+
+function toggleFav(ch) {
+    let f = JSON.parse(localStorage.getItem('my_iptv_favs') || "[]");
+    let i = f.findIndex(x => x.url === ch.url);
+    i > -1 ? f.splice(i, 1) : f.push(ch);
+    localStorage.setItem('my_iptv_favs', JSON.stringify(f));
+    render();
+}
+
+function toggleFavoriteView() {
+    isFavView = !isFavView;
+    document.getElementById('favBtnTab').classList.toggle('active-tab', isFavView);
+    render();
 }
 
 playerArea.onclick = () => {
     if(popMenu.style.display === 'flex') { popMenu.style.display = 'none'; return; }
     controls.classList.toggle('show');
     clearTimeout(hideTimeout);
-    if(controls.classList.contains('show')) hideTimeout = setTimeout(() => controls.classList.remove('show'), 3000);
+    if(controls.classList.contains('show')) hideTimeout = setTimeout(() => controls.classList.remove('show'), 4000);
 };
 
 function togglePlay(e) { if(e) e.stopPropagation(); video.paused ? (video.play(), document.getElementById('pp').className="fas fa-pause") : (video.pause(), document.getElementById('pp').className="fas fa-play"); }
 function showToast(m) { const t=document.getElementById('toast'); t.innerText=m; t.style.display="block"; setTimeout(()=>t.style.display="none", 2000); }
-function toggleFull(e) { if(e) e.stopPropagation(); if (!document.fullscreenElement) { playerArea.requestFullscreen(); } else { document.exitFullscreen(); } }
+function copyShareLink() { navigator.clipboard.writeText(location.href); showToast("Link Copied!"); }
 
-// প্লেলিস্ট লোড
 const playlistUrl = new URLSearchParams(location.search).get('playlist');
 if(playlistUrl) {
     fetch(playlistUrl).then(r=>r.text()).then(data => {
