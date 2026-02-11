@@ -15,9 +15,8 @@ body { background: var(--bg); color: var(--text); height: 100vh; display: flex; 
 /* PLAYER AREA */
 .player-wrap { position: relative; width: 100%; background: #000; aspect-ratio: 16/9; flex-shrink: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; touch-action: none; }
 video { width: 100%; height: 100%; object-fit: contain; z-index: 5; pointer-events: none; transition: filter 0.1s ease; }
-#visualizer { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 4; pointer-events: none; background: #050505; display: none; }
 
-/* SWIPE HUD - ভলিউম ও ব্রাইটনেস ইন্ডিকেটর */
+/* SWIPE HUD */
 #hud { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.8); color: white; padding: 15px 25px; border-radius: 12px; z-index: 200; display: none; text-align: center; pointer-events: none; min-width: 100px; }
 #hud i { display: block; font-size: 2.5rem; margin-bottom: 8px; color: var(--accent); }
 
@@ -26,18 +25,18 @@ video { width: 100%; height: 100%; object-fit: contain; z-index: 5; pointer-even
 .controls-overlay.show { opacity: 1; visibility: visible; }
 .bottom-bar { padding: 15px; background: linear-gradient(transparent, rgba(0,0,0,0.9)); display: flex; justify-content: space-between; align-items: center; padding-bottom: env(safe-area-inset-bottom); }
 .mini-btns, .right-side { display: flex; align-items: center; gap: 20px; }
-.mini-btns i, .right-side i { font-size: 1.4rem; cursor: pointer; color: #fff; }
+.mini-btns i, .right-side i { font-size: 1.4rem; cursor: pointer; color: #fff; padding: 5px; }
 
 /* POPUP MENU */
-.pop-menu { position: absolute; bottom: 75px; right: 15px; background: rgba(25,25,25,0.98); border: 1px solid #333; border-radius: 12px; display: none; flex-direction: column; z-index: 150; min-width: 150px; overflow: hidden; }
+.pop-menu { position: absolute; bottom: 75px; right: 15px; background: rgba(25,25,25,0.98); border: 1px solid #333; border-radius: 12px; display: none; flex-direction: column; z-index: 150; min-width: 160px; overflow: hidden; }
 .pop-menu button { background: none; border: none; color: white; padding: 12px 15px; cursor: pointer; border-bottom: 1px solid #222; text-align: left; font-size: 14px; }
+.pop-menu button:hover { background: var(--accent); color: #000; }
 
 /* UI ELEMENTS */
 .info { padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; background: #080808; border-bottom: 1px solid #1a1a1a; }
 .mini-logo { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; background: #111; }
 .actions { display: flex; padding: 15px 0; background: #050505; border-bottom: 1px solid #1a1a1a; }
 .actions div { flex: 1; text-align: center; font-size: 0.85rem; color: #bbb; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
-.active-tab, .active-tab i { color: var(--accent) !important; }
 
 /* LIST */
 .list { flex: 1; overflow-y: auto; padding: 12px; background: var(--bg); padding-bottom: 80px; }
@@ -55,7 +54,6 @@ video { width: 100%; height: 100%; object-fit: contain; z-index: 5; pointer-even
 
 <div class="player-wrap" id="playerArea">
     <div id="hud"><i id="hudIcon"></i><span id="hudValue">0%</span></div>
-    <canvas id="visualizer"></canvas>
     <video id="video" playsinline crossorigin="anonymous"></video>
     <div class="pop-menu" id="popMenu"></div>
     <div class="controls-overlay" id="controls">
@@ -78,7 +76,7 @@ video { width: 100%; height: 100%; object-fit: contain; z-index: 5; pointer-even
         <img id="currentLogo" class="mini-logo" src="https://i.imgur.com/8Qf6Y0L.png">
         <div><h3 id="title" style="font-size:16px;">Select Channel</h3><small style="color:var(--accent); font-weight:bold;">LIVE</small></div>
     </div>
-    <div id="count" style="font-size:13px; color:var(--accent); background:rgba(0,229,255,0.1); padding:4px 10px; border-radius:5px;">0 CH</div>
+    <div id="count" style="font-size:13px; color:var(--accent)">0 CH</div>
 </div>
 
 <div class="actions">
@@ -91,71 +89,61 @@ video { width: 100%; height: 100%; object-fit: contain; z-index: 5; pointer-even
 <div id="toast"></div>
 
 <script>
-const video=document.getElementById('video'), playerArea=document.getElementById('playerArea'), popMenu=document.getElementById('popMenu'), controls=document.getElementById('controls'), listArea=document.getElementById('list'), canvas=document.getElementById('visualizer'), ctx=canvas.getContext('2d');
-let hls=new Hls(), allChannels=[], isFavView=false, startY, startVal, isLeft, hideTimeout, audioCtx, analyser, dataArray;
-let brightness = 1;
+const video=document.getElementById('video'), playerArea=document.getElementById('playerArea'), popMenu=document.getElementById('popMenu'), controls=document.getElementById('controls'), listArea=document.getElementById('list');
+let hls=new Hls(), allChannels=[], isFavView=false, startY, startVal, isLeft, hideTimeout, brightness = 1;
 
-// ১. সোয়াইপ কন্ট্রোল (Volume & Brightness)
+// ১. স্ক্রিন সাইজ (Scaling) ফাংশন ফিক্স
+function showScalingMenu(e) {
+    e.stopPropagation();
+    popMenu.innerHTML = '<div style="padding:10px; color:#aaa; font-size:12px; border-bottom:1px solid #222;">Screen Size</div>';
+    popMenu.innerHTML += `<button onclick="setScaling('contain', event)">Fit Screen (Original)</button>`;
+    popMenu.innerHTML += `<button onclick="setScaling('cover', event)">Fill Screen (Crop)</button>`;
+    popMenu.innerHTML += `<button onclick="setScaling('fill', event)">Zoom to Screen (Stretched)</button>`;
+    popMenu.style.display = 'flex';
+}
+
+function setScaling(mode, e) {
+    if(e) e.stopPropagation();
+    video.style.objectFit = mode;
+    popMenu.style.display = 'none';
+    showToast("Screen Mode: " + mode.toUpperCase());
+}
+
+// ২. সোয়াইপ কন্ট্রোল (ভলিউম ও ব্রাইটনেস)
 playerArea.addEventListener('touchstart', e => {
     startY = e.touches[0].clientY;
-    // স্ক্রিনের বাম পাশে বামে টাচ করলে ব্রাইটনেস, ডান পাশে করলে ভলিউম
     isLeft = e.touches[0].clientX < playerArea.clientWidth / 2;
     startVal = isLeft ? brightness : video.volume;
 });
 
 playerArea.addEventListener('touchmove', e => {
+    if(popMenu.style.display === 'flex') return;
     e.preventDefault();
-    let delta = (startY - e.touches[0].clientY) / 150; // সোয়াইপ সেন্সিটিভিটি
+    let delta = (startY - e.touches[0].clientY) / 150;
     const hud = document.getElementById('hud');
-    const hudIcon = document.getElementById('hudIcon');
-    const hudValue = document.getElementById('hudValue');
-    
     hud.style.display = 'block';
 
     if(isLeft) {
-        // ব্রাইটনেস কন্ট্রোল
         brightness = Math.min(Math.max(startVal + delta, 0.3), 1.8);
         video.style.filter = `brightness(${brightness})`;
-        hudIcon.className = 'fas fa-sun';
-        hudValue.innerText = Math.round(brightness * 50) + "%";
+        document.getElementById('hudIcon').className = 'fas fa-sun';
+        document.getElementById('hudValue').innerText = Math.round(brightness * 50) + "%";
     } else {
-        // ভলিউম কন্ট্রোল
         let vol = Math.min(Math.max(startVal + delta, 0), 1);
         video.volume = vol;
-        hudIcon.className = vol === 0 ? 'fas fa-volume-mute' : 'fas fa-volume-up';
-        hudValue.innerText = Math.round(vol * 100) + "%";
+        document.getElementById('hudIcon').className = vol === 0 ? 'fas fa-volume-mute' : 'fas fa-volume-up';
+        document.getElementById('hudValue').innerText = Math.round(vol * 100) + "%";
     }
 });
+playerArea.addEventListener('touchend', () => setTimeout(() => document.getElementById('hud').style.display = 'none', 500));
 
-playerArea.addEventListener('touchend', () => {
-    setTimeout(() => document.getElementById('hud').style.display = 'none', 500);
-});
-
-// ২. কোয়ালিটি মেনু
-function showQualityMenu(e) {
-    e.stopPropagation();
-    popMenu.innerHTML = '<div style="padding:10px; color:#aaa; font-size:12px; border-bottom:1px solid #222;">Quality Settings</div>';
-    popMenu.innerHTML += `<button onclick="setQuality(-1)">Auto (Recommended)</button>`;
-    if (hls && hls.levels.length > 0) {
-        hls.levels.forEach((l, i) => {
-            popMenu.innerHTML += `<button onclick="setQuality(${i})">${l.height ? l.height+'p' : 'Level '+i}</button>`;
-        });
-    }
-    popMenu.style.display = 'flex';
-}
-function setQuality(i) {
-    hls.currentLevel = i;
-    popMenu.style.display = 'none';
-    showToast("Quality Changing...");
-}
-
-// ৩. ফুলস্ক্রিন ও জুম
+// ৩. ফুলস্ক্রিন ও অটো জুম
 function toggleFull(e) {
     if(e) e.stopPropagation();
     if (!document.fullscreenElement) {
         playerArea.requestFullscreen().then(() => {
             if (screen.orientation?.lock) screen.orientation.lock('landscape').catch(()=>{});
-            video.style.objectFit = 'fill';
+            video.style.objectFit = 'fill'; 
         });
     } else {
         document.exitFullscreen();
@@ -163,9 +151,28 @@ function toggleFull(e) {
     }
 }
 
-// ৪. কোর প্লে লজিক
+// ৪. কোয়ালিটি মেনু
+function showQualityMenu(e) {
+    e.stopPropagation();
+    popMenu.innerHTML = '<div style="padding:10px; color:#aaa; font-size:12px; border-bottom:1px solid #222;">Video Quality</div>';
+    popMenu.innerHTML += `<button onclick="setQuality(-1, event)">Auto</button>`;
+    if (hls && hls.levels.length > 0) {
+        hls.levels.forEach((l, i) => {
+            popMenu.innerHTML += `<button onclick="setQuality(${i}, event)">${l.height ? l.height+'p' : 'Level '+i}</button>`;
+        });
+    }
+    popMenu.style.display = 'flex';
+}
+
+function setQuality(i, e) {
+    if(e) e.stopPropagation();
+    hls.currentLevel = i;
+    popMenu.style.display = 'none';
+    showToast("Changing Quality...");
+}
+
+// ৫. কোর প্লে লজিক ও রেন্ডার
 function play(url, name, logo) {
-    if(audioCtx?.state === 'suspended') audioCtx.resume();
     document.getElementById('title').innerText = name;
     document.getElementById('currentLogo').src = logo || "https://i.imgur.com/8Qf6Y0L.png";
     if(Hls.isSupported()){
@@ -177,11 +184,9 @@ function play(url, name, logo) {
     render();
 }
 
-// ৫. রেন্ডার ও ফেভারিট
 function render() {
     let arr = isFavView ? JSON.parse(localStorage.getItem('my_iptv_favs') || "[]") : allChannels;
     listArea.innerHTML = "";
-    document.getElementById('count').innerText = arr.length + " CH";
     arr.forEach(ch => {
         const favs = JSON.parse(localStorage.getItem('my_iptv_favs') || "[]");
         const isFav = favs.some(f => f.url === ch.url);
@@ -209,7 +214,6 @@ function toggleFavoriteView() {
     render();
 }
 
-// কন্ট্রোলস টগল
 playerArea.onclick = () => {
     if(popMenu.style.display === 'flex') { popMenu.style.display = 'none'; return; }
     controls.classList.toggle('show');
