@@ -21,7 +21,7 @@ video { width: 100%; height: 100%; object-fit: contain; z-index: 5; pointer-even
 .spinner { width: 40px; height: 40px; border: 4px solid #333; border-top: 4px solid var(--accent); border-radius: 50%; animation: spin 1s linear infinite; }
 @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-/* অডিও ভিজ্যুয়ালাইজার - শুধুমাত্র সাউন্ডে শো করবে */
+/* অডিও ভিজ্যুয়ালাইজার */
 #audioAnim { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; gap: 5px; background: #050505; z-index: 4; }
 .v-bar { width: 8px; background: linear-gradient(to top, var(--accent), #fff); border-radius: 50px; animation: jump 0.6s infinite alternate; }
 @keyframes jump { 0% { height: 10%; opacity: 0.3; } 100% { height: 80%; opacity: 1; } }
@@ -55,9 +55,19 @@ video { width: 100%; height: 100%; object-fit: contain; z-index: 5; pointer-even
 .actions div { flex: 1; text-align: center; font-size: 0.9rem; color: #888; cursor: pointer; }
 .actions div.active-tab { color: var(--accent); font-weight: bold; border-bottom: 2px solid var(--accent); padding-bottom: 5px; }
 
-/* CHANNEL LIST CARD */
-.list { flex: 1; overflow-y: auto; padding: 10px; background: #000; }
-.row { display: flex; align-items: center; gap: 12px; background: var(--card); padding: 10px; border-radius: 10px; margin-bottom: 8px; border: 1px solid #1a1a1a; cursor: pointer; }
+/* CHANNEL LIST - FIXED FOR MOBILE NAVIGATION BAR */
+.list { 
+    flex: 1; 
+    overflow-y: auto; 
+    padding: 10px; 
+    /* নেভিগেশন বারের সমস্যা সমাধানের জন্য নিচে ১০০ পিক্সেল অতিরিক্ত গ্যাপ রাখা হয়েছে */
+    padding-bottom: 100px; 
+    padding-bottom: calc(100px + env(safe-area-inset-bottom));
+    background: #000; 
+    scroll-behavior: smooth;
+}
+
+.row { display: flex; align-items: center; gap: 12px; background: var(--card); padding: 12px; border-radius: 10px; margin-bottom: 8px; border: 1px solid #1a1a1a; cursor: pointer; }
 .row.active { border-color: var(--accent); background: rgba(0, 229, 255, 0.05); }
 .list-logo { width: 50px; height: 50px; border-radius: 6px; object-fit: cover; }
 .name { flex: 1; font-size: 0.95rem; color: #fff; font-weight: 500; }
@@ -119,28 +129,18 @@ for(let i=0; i<20; i++) {
 
 function handlePlayerClick() {
     const isShowing = controls.classList.toggle('show');
-    
-    // যদি কন্ট্রোল হাইড হয়, তবে পপআপ মেনুও বন্ধ করে দাও
-    if (!isShowing) {
-        popMenu.style.display = 'none';
-    }
-
+    if (!isShowing) popMenu.style.display = 'none';
     clearTimeout(hideTimeout);
     if(isShowing) hideTimeout = setTimeout(() => {
         controls.classList.remove('show');
-        popMenu.style.display = 'none'; // ৫ সেকেন্ড পর অটো হাইড হলে মেনুও যাবে
+        popMenu.style.display = 'none';
     }, 5000);
 }
 
 video.onwaiting = () => loader.style.display = 'flex';
 video.onplaying = () => {
     loader.style.display = 'none';
-    // অডিও ভিজুয়ালাইজার লজিক
-    if (video.videoHeight === 0 && !video.paused) { 
-        audioAnim.style.display = 'flex'; 
-    } else { 
-        audioAnim.style.display = 'none'; 
-    }
+    if (video.videoHeight === 0 && !video.paused) { audioAnim.style.display = 'flex'; } else { audioAnim.style.display = 'none'; }
 };
 
 function play(url, name, logo) {
@@ -218,6 +218,15 @@ function switchTab(type, el) {
     document.querySelectorAll('.actions div').forEach(d => d.classList.remove('active-tab'));
     el.classList.add('active-tab');
     isFavView = (type === 'fav');
+    render();
+}
+
+function toggleFav(e, ch) {
+    e.stopPropagation();
+    let favs = JSON.parse(localStorage.getItem('my_iptv_favs') || "[]");
+    const index = favs.findIndex(f => f.url === ch.url);
+    if (index > -1) favs.splice(index, 1); else favs.push(ch);
+    localStorage.setItem('my_iptv_favs', JSON.stringify(favs));
     render();
 }
 
