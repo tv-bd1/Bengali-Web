@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Best IPTV PRO | Dashboard</title>
+    <title>Best IPTV PRO | Desktop Dashboard</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         :root {
@@ -19,54 +19,179 @@
             --success: #2ed573;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         
-        body { background: var(--bg); color: var(--text); height: 100vh; display: flex; overflow: hidden; }
+        body { 
+            background: var(--bg); 
+            color: var(--text); 
+            height: 100vh; 
+            display: flex; 
+            overflow: hidden;
+        }
 
-        /* SIDEBAR */
-        .sidebar { width: 280px; background: var(--sidebar); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 30px 20px; }
-        .app-logo { display: flex; align-items: center; gap: 15px; margin-bottom: 40px; }
+        /* SIDEBAR NAVIGATION */
+        .sidebar {
+            width: 280px;
+            background: var(--sidebar);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            padding: 30px 20px;
+            z-index: 100;
+        }
+
+        .app-logo { 
+            display: flex; 
+            align-items: center; 
+            gap: 15px; 
+            margin-bottom: 40px;
+            padding-left: 10px;
+        }
         .app-logo i { font-size: 2.2rem; color: var(--accent); }
         .app-name { font-size: 1.5rem; font-weight: 800; background: var(--accent-grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 
         .nav-menu { flex: 1; }
-        .nav-item { display: flex; align-items: center; gap: 15px; padding: 14px 18px; border-radius: 12px; color: var(--text-dim); text-decoration: none; margin-bottom: 10px; cursor: pointer; transition: 0.3s; }
-        .nav-item:hover, .nav-item.active { background: rgba(0, 210, 255, 0.1); color: var(--accent); }
+        .nav-item {
+            display: flex; align-items: center; gap: 15px;
+            padding: 14px 18px; border-radius: 12px;
+            color: var(--text-dim); text-decoration: none;
+            margin-bottom: 10px; transition: 0.3s; cursor: pointer;
+        }
+        .nav-item:hover, .nav-item.active {
+            background: rgba(0, 210, 255, 0.1);
+            color: var(--accent);
+        }
 
-        /* MAIN CONTENT */
-        .main-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-        .top-bar { height: 80px; padding: 0 40px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
-        .search-input { width: 400px; background: var(--card); border: 1px solid var(--border); padding: 12px 20px; border-radius: 12px; color: white; outline: none; }
+        /* MAIN DASHBOARD */
+        .main-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
 
-        .content-area { flex: 1; padding: 40px; overflow-y: auto; }
-        .grid-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
-        .playlist-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 25px; }
+        .top-bar {
+            height: 80px;
+            padding: 0 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .search-wrapper {
+            width: 400px;
+            position: relative;
+        }
+        .search-wrapper i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-dim); }
+        .search-input {
+            width: 100%; background: var(--card); border: 1px solid var(--border);
+            padding: 12px 12px 12px 45px; border-radius: 12px; color: var(--text); outline: none;
+        }
+
+        .content-area {
+            flex: 1;
+            padding: 40px;
+            overflow-y: auto;
+        }
+
+        .grid-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 30px;
+        }
+        .grid-title h1 { font-size: 1.8rem; margin-bottom: 5px; }
+        .grid-title p { color: var(--text-dim); font-size: 0.9rem; }
+
+        .playlist-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+        }
 
         /* PLAYLIST CARD */
-        .playlist-card { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 25px; transition: 0.3s; position: relative; }
-        .playlist-card:hover { transform: translateY(-5px); border-color: var(--accent); }
-        .card-top { display: flex; justify-content: space-between; margin-bottom: 15px; }
-        .card-icon { width: 50px; height: 50px; background: var(--accent-grad); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+        .playlist-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 25px;
+            transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            cursor: pointer;
+        }
+        .playlist-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--accent);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+        }
+
+        .card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
+        .card-icon {
+            width: 60px; height: 60px; background: var(--accent-grad);
+            border-radius: 18px; display: flex; align-items: center;
+            justify-content: center; font-size: 1.5rem; color: white;
+            box-shadow: 0 8px 20px rgba(0,210,255,0.2);
+        }
+
+        .card-info h3 { font-size: 1.2rem; margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         
-        .badge { font-size: 0.65rem; padding: 4px 10px; border-radius: 10px; font-weight: bold; text-transform: uppercase; }
+        .badge {
+            display: inline-flex; align-items: center; gap: 5px;
+            font-size: 0.7rem; padding: 5px 12px; border-radius: 20px;
+            font-weight: 700; text-transform: uppercase;
+        }
         .badge-official { background: rgba(0, 210, 255, 0.1); color: var(--accent); }
         .badge-user { background: rgba(46, 213, 115, 0.1); color: var(--success); }
 
-        .card-footer { margin-top: 20px; padding-top: 15px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-        .btn-play { background: var(--accent-grad); color: white; border: none; padding: 8px 18px; border-radius: 8px; font-weight: 600; cursor: pointer; }
-        
-        .action-btns { display: flex; gap: 15px; color: var(--text-dim); }
-        .action-btns i { cursor: pointer; transition: 0.2s; }
-        .action-btns i:hover { color: var(--accent); }
-        .fa-trash-alt:hover { color: var(--danger) !important; }
+        .card-footer {
+            margin-top: 20px; padding-top: 20px;
+            border-top: 1px solid var(--border);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+
+        .btn-play {
+            background: var(--accent-grad); color: white; border: none;
+            padding: 8px 20px; border-radius: 10px; font-weight: 600; cursor: pointer;
+        }
+
+        .btn-delete { color: var(--text-dim); cursor: pointer; transition: 0.3s; font-size: 1.1rem; }
+        .btn-delete:hover { color: var(--danger); transform: scale(1.2); }
 
         /* MODAL */
-        .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); display: none; z-index: 1000; }
-        .modal-content { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 450px; background: var(--card); border-radius: 20px; padding: 35px; display: none; z-index: 1001; border: 1px solid var(--border); }
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 8px; color: var(--text-dim); }
-        .form-input { width: 100%; background: var(--bg); border: 1px solid var(--border); padding: 12px; border-radius: 10px; color: white; outline: none; }
-        .submit-btn { width: 100%; background: var(--accent-grad); color: white; border: none; padding: 12px; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .modal-backdrop {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(10px); display: none; z-index: 1000;
+        }
+        .modal-content {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 500px; background: var(--card); border-radius: 25px;
+            border: 1px solid var(--border); padding: 40px; z-index: 1001; display: none;
+        }
+
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; color: var(--text-dim); font-size: 0.9rem; }
+        .form-input {
+            width: 100%; background: var(--bg); border: 1px solid var(--border);
+            padding: 14px; border-radius: 12px; color: white; outline: none;
+        }
+        .form-input:focus { border-color: var(--accent); }
+
+        .submit-btn {
+            width: 100%; background: var(--accent-grad); color: white; border: none;
+            padding: 15px; border-radius: 12px; font-weight: 700; cursor: pointer;
+            margin-top: 10px; font-size: 1rem;
+        }
+
+        .add-card-dash {
+            border: 2px dashed var(--border);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            color: var(--text-dim); cursor: pointer;
+        }
+        .add-card-dash:hover { border-color: var(--accent); color: var(--accent); background: rgba(0,210,255,0.02); }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
     </style>
 </head>
 <body>
@@ -76,48 +201,71 @@
             <i class="fas fa-play-circle"></i>
             <div class="app-name">Best IPTV PRO</div>
         </div>
+
         <nav class="nav-menu">
             <div class="nav-item active"><i class="fas fa-th-large"></i> Dashboard</div>
             <div class="nav-item" onclick="openModal()"><i class="fas fa-plus-circle"></i> Add Playlist</div>
         </nav>
+
+        <div style="padding: 20px; background: rgba(255,255,255,0.03); border-radius: 15px; font-size: 0.8rem; text-align: center;">
+            <p style="color: var(--text-dim);">V2.5 Desktop App</p>
+            <p style="font-weight: bold; color: var(--accent);">Premium Active</p>
+        </div>
     </aside>
 
     <div class="main-container">
         <header class="top-bar">
-            <input type="text" class="search-input" id="searchInput" placeholder="Search playlists...">
-            <div id="pCountTop" style="color: var(--accent); font-weight: bold;">0 Playlists</div>
+            <div class="search-wrapper">
+                <i class="fas fa-search"></i>
+                <input type="text" class="search-input" id="searchInput" placeholder="Search your library...">
+            </div>
+            <div style="display: flex; gap: 20px; align-items: center;">
+                <span id="pCountTop" style="font-weight: bold; color: var(--accent);">0 Playlists</span>
+                <img src="https://ui-avatars.com/api/?name=IPTV&background=00d2ff&color=fff" style="width: 40px; border-radius: 10px;">
+            </div>
         </header>
 
         <main class="content-area">
             <div class="grid-header">
-                <h1>My Library</h1>
-                <button onclick="openModal()" class="submit-btn" style="width: auto; padding: 10px 20px;">+ Add New</button>
+                <div class="grid-title">
+                    <h1>My Library</h1>
+                    <p>Manage and stream your premium M3U collections</p>
+                </div>
+                <button onclick="openModal()" class="submit-btn" style="width: auto; padding: 10px 25px;">+ Add Playlist</button>
             </div>
+
             <div class="playlist-grid" id="playlistGrid"></div>
         </main>
     </div>
 
     <div class="modal-backdrop" id="backdrop" onclick="closeModal()"></div>
     <div class="modal-content" id="modal">
-        <h2 id="modalTitle" style="margin-bottom: 20px;">Add New Playlist</h2>
+        <h2 style="margin-bottom: 25px;">Add New Playlist</h2>
         <form id="pForm">
-            <input type="hidden" id="editId">
             <div class="form-group">
                 <label>Playlist Name</label>
-                <input type="text" class="form-input" id="pName" required>
+                <input type="text" class="form-input" id="pName" placeholder="Example: Movies Pack" required>
             </div>
             <div class="form-group">
                 <label>M3U URL</label>
-                <input type="url" class="form-input" id="pUrl" required>
+                <input type="url" class="form-input" id="pUrl" placeholder="https://example.com/list.m3u">
             </div>
-            <button type="submit" class="submit-btn" id="saveBtn">Save Playlist</button>
+            <div style="text-align: center; margin: 15px 0; color: var(--text-dim);">-- OR --</div>
+            <div class="form-group">
+                <label>Upload File</label>
+                <input type="file" id="pFile" accept=".m3u,.m3u8" style="display: none;" onchange="updateFileName(this)">
+                <div onclick="document.getElementById('pFile').click()" style="border: 1px dashed var(--border); padding: 15px; text-align: center; border-radius: 12px; cursor: pointer;" id="fileLabel">
+                    <i class="fas fa-file-upload"></i> Click to upload .m3u
+                </div>
+            </div>
+            <button type="submit" class="submit-btn">Save to Library</button>
         </form>
     </div>
 
     <script>
         const playlistGrid = document.getElementById('playlistGrid');
         const searchInput = document.getElementById('searchInput');
-        
+
         const defaultServers = [
             { id: 's1', name: "Live Sports Global", url: "Sports.m3u", type: "default" },
             { id: 's2', name: "Entertainment HD", url: "All.m3u", type: "default" },
@@ -132,52 +280,39 @@
             playlistGrid.innerHTML = '';
             document.getElementById('pCountTop').innerText = `${filtered.length} Playlists`;
 
+            // "Add New" Card
+            const addCard = document.createElement('div');
+            addCard.className = 'playlist-card add-card-dash';
+            addCard.onclick = openModal;
+            addCard.innerHTML = `<i class="fas fa-plus-circle" style="font-size: 2rem; margin-bottom: 10px;"></i><b>Add New Playlist</b>`;
+            playlistGrid.appendChild(addCard);
+
             filtered.forEach(p => {
-                const isDefault = p.type === 'default';
                 const card = document.createElement('div');
                 card.className = 'playlist-card';
                 card.innerHTML = `
                     <div class="card-top">
                         <div class="card-icon"><i class="fas fa-play"></i></div>
-                        <span class="badge ${isDefault ? 'badge-official' : 'badge-user'}">${isDefault ? 'Official' : 'Personal'}</span>
+                        <span class="badge ${p.type === 'default' ? 'badge-official' : 'badge-user'}">
+                            ${p.type === 'default' ? 'Official' : 'Personal'}
+                        </span>
                     </div>
-                    <h3>${p.name}</h3>
-                    <p style="font-size: 0.8rem; color: var(--text-dim); margin-top:5px;">${p.url.substring(0, 35)}...</p>
+                    <div class="card-info">
+                        <h3>${p.name}</h3>
+                        <p style="font-size: 0.8rem; color: var(--text-dim); overflow: hidden; text-overflow: ellipsis;">${p.url.substring(0, 30)}...</p>
+                    </div>
                     <div class="card-footer">
-                        <button class="btn-play" onclick="location.href='video.html?playlist=${encodeURIComponent(p.url)}'">Watch</button>
-                        <div class="action-btns">
-                            ${!isDefault ? `
-                                <i class="fas fa-edit" onclick="editItem('${p.id}')" title="Edit"></i>
-                                <i class="fas fa-trash-alt" onclick="deleteItem('${p.id}')" title="Delete"></i>
-                            ` : '<i class="fas fa-lock" title="Fixed"></i>'}
-                        </div>
+                        <button class="btn-play" onclick="goToPlayer('${p.url}')">Watch Now</button>
+                        ${p.type !== 'default' ? `<i class="fas fa-trash-alt btn-delete" onclick="deleteItem(event, '${p.id}')"></i>` : '<i class="fas fa-check-circle" style="color:var(--accent)"></i>'}
                     </div>
                 `;
+                card.onclick = () => goToPlayer(p.url);
                 playlistGrid.appendChild(card);
             });
         }
 
-        // এডিট ফাংশন
-        function editItem(id) {
-            let saved = JSON.parse(localStorage.getItem('user_playlists')) || [];
-            const item = saved.find(x => x.id === id);
-            if(item) {
-                document.getElementById('editId').value = item.id;
-                document.getElementById('pName').value = item.name;
-                document.getElementById('pUrl').value = item.url;
-                document.getElementById('modalTitle').innerText = "Edit Playlist";
-                openModal();
-            }
-        }
-
-        // ডিলিট ফাংশন
-        function deleteItem(id) {
-            if(confirm("Are you sure you want to delete this?")) {
-                let saved = JSON.parse(localStorage.getItem('user_playlists')) || [];
-                saved = saved.filter(x => x.id !== id);
-                localStorage.setItem('user_playlists', JSON.stringify(saved));
-                render();
-            }
+        function goToPlayer(url) {
+            window.location.href = `video.html?playlist=${encodeURIComponent(url)}`;
         }
 
         function openModal() {
@@ -189,32 +324,45 @@
             document.getElementById('modal').style.display = 'none';
             document.getElementById('backdrop').style.display = 'none';
             document.getElementById('pForm').reset();
-            document.getElementById('editId').value = '';
-            document.getElementById('modalTitle').innerText = "Add New Playlist";
+            document.getElementById('fileLabel').innerHTML = '<i class="fas fa-file-upload"></i> Click to upload .m3u';
         }
+
+        function updateFileName(input) {
+            if(input.files.length > 0) {
+                document.getElementById('fileLabel').innerHTML = `<b>Selected:</b> ${input.files[0].name}`;
+            }
+        }
+
+        function deleteItem(e, id) {
+            e.stopPropagation();
+            if(confirm("Remove this playlist?")) {
+                let saved = JSON.parse(localStorage.getItem('user_playlists')) || [];
+                saved = saved.filter(x => x.id !== id);
+                localStorage.setItem('user_playlists', JSON.stringify(saved));
+                render(searchInput.value);
+            }
+        }
+
+        searchInput.oninput = (e) => render(e.target.value);
 
         document.getElementById('pForm').onsubmit = (e) => {
             e.preventDefault();
-            const id = document.getElementById('editId').value;
-            const name = document.getElementById('pName').value;
             const url = document.getElementById('pUrl').value;
-            let saved = JSON.parse(localStorage.getItem('user_playlists')) || [];
+            const name = document.getElementById('pName').value;
+            const file = document.getElementById('pFile').files[0];
 
-            if(id) {
-                // আপডেট (Update)
-                const index = saved.findIndex(x => x.id === id);
-                saved[index] = { ...saved[index], name, url };
-            } else {
-                // নতুন যোগ (Add New)
-                saved.push({ id: Date.now().toString(), name, url, type: 'user' });
-            }
+            let newEntry = { id: Date.now().toString(), name: name, type: 'user' };
+            if (file) newEntry.url = URL.createObjectURL(file);
+            else if (url) newEntry.url = url;
+            else return alert("Provide URL or File");
 
+            const saved = JSON.parse(localStorage.getItem('user_playlists')) || [];
+            saved.push(newEntry);
             localStorage.setItem('user_playlists', JSON.stringify(saved));
             render();
             closeModal();
         };
 
-        searchInput.oninput = (e) => render(e.target.value);
         render();
     </script>
 </body>
