@@ -37,6 +37,16 @@ body { background: var(--bg); color: var(--text); height: 100vh; display: flex; 
 }
 video { width: 100%; height: 100%; object-fit: contain; z-index: 5; cursor: none; }
 
+/* AUDIO VISUALIZER ANIMATION */
+#audioAnim { 
+    position: absolute; inset: 0; 
+    display: none; align-items: center; 
+    justify-content: center; gap: 6px; 
+    background: #080808; z-index: 4; 
+}
+.v-bar { width: 8px; background: linear-gradient(to top, var(--accent), #fff); border-radius: 50px; animation: jump 0.6s infinite alternate; }
+@keyframes jump { 0% { height: 10%; opacity: 0.3; } 100% { height: 70%; opacity: 1; } }
+
 /* SIDEBAR */
 .sidebar { 
     width: 400px; 
@@ -78,13 +88,14 @@ video { width: 100%; height: 100%; object-fit: contain; z-index: 5; cursor: none
 
 /* INFO & TABS */
 .info-header { padding: 20px; background: #0a0a0a; border-bottom: 1px solid #222; display: flex; align-items: center; gap: 15px; }
-.current-logo { width: 55px; height: 55px; border-radius: 10px; object-fit: cover; }
+.current-logo { width: 55px; height: 55px; border-radius: 10px; object-fit: cover; border: 2px solid #333; }
 .tabs { display: flex; background: #111; border-bottom: 1px solid #222; }
 .tabs div { flex: 1; padding: 15px; text-align: center; cursor: pointer; color: #666; font-weight: 600; font-size: 0.9rem; }
 .tabs div.active-tab { color: var(--accent); border-bottom: 3px solid var(--accent); }
 
 .list { flex: 1; overflow-y: auto; padding: 15px; }
-.row { display: flex; align-items: center; gap: 15px; background: var(--card); padding: 12px; border-radius: 12px; margin-bottom: 10px; cursor: pointer; border: 1px solid #222; }
+.row { display: flex; align-items: center; gap: 15px; background: var(--card); padding: 12px; border-radius: 12px; margin-bottom: 10px; cursor: pointer; border: 1px solid #222; transition: 0.2s; }
+.row:hover { background: #252525; transform: translateX(5px); }
 .row.active { border-color: var(--accent); background: rgba(0, 229, 255, 0.08); }
 .list-logo { width: 45px; height: 45px; border-radius: 8px; }
 </style>
@@ -95,7 +106,7 @@ video { width: 100%; height: 100%; object-fit: contain; z-index: 5; cursor: none
     <div class="player-section">
         <div class="player-wrap" id="playerArea" onclick="handleVideoClick(event)">
             <div id="loader"><div class="spinner"></div></div>
-            <video id="video" playsinline crossorigin="anonymous"></video>
+            <div id="audioAnim"></div> <video id="video" playsinline crossorigin="anonymous"></video>
             
             <div class="pop-menu" id="popMenu"></div>
             
@@ -104,10 +115,199 @@ video { width: 100%; height: 100%; object-fit: contain; z-index: 5; cursor: none
                     <div class="ctrl-group">
                         <i class="fas fa-play" id="pp" onclick="togglePlay(event)"></i>
                         <i class="fas fa-redo" onclick="location.reload()"></i>
-                        <span id="channelTitle" style="font-weight: bold;">Select Channel</span>
+                        <span id="channelTitle" style="font-weight: bold; margin-left: 10px;">Select Channel</span>
                     </div>
                     <div class="ctrl-group">
                         <i class="fas fa-cog" onclick="showQualityMenu(event)"></i>
+                        <i class="fas fa-sliders-h" onclick="showScalingMenu(event)"></i>
+                        <i class="fas fa-expand" onclick="toggleFull(event)"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="info-header">
+            <img id="currentLogo" class="current-logo" src="https://i.imgur.com/8Qf6Y0L.png">
+            <div style="flex:1;">
+                <h3 id="title" style="font-size:1.3rem;">IPTV PRO Desktop</h3>
+                <small style="color:var(--accent); letter-spacing: 1px;">PREMIUM LIVE STREAMING</small>
+            </div>
+            <div id="count" style="font-weight: bold; opacity: 0.6;">0 CH</div>
+        </div>
+    </div>
+
+    <div class="sidebar">
+        <div class="tabs">
+            <div id="allBtnTab" class="active-tab" onclick="switchTab('all', this)">ALL LIST</div>
+            <div id="favBtnTab" onclick="switchTab('fav', this)">FAVORITES</div>
+        </div>
+        <div class="list" id="list"></div>
+    </div>
+</div>
+
+<script>
+const video=document.getElementById('video'), playerArea=document.getElementById('playerArea'), popMenu=document.getElementById('popMenu'), controls=document.getElementById('controls'), listArea=document.getElementById('list'), audioAnim=document.getElementById('audioAnim'), loader=document.getElementById('loader');
+let hls=new Hls(), allChannels=[], isFavView=false, controlTimer;
+
+// Create visualizer bars
+for(let i=0; i<25; i++) {
+    let bar = document.createElement('div');
+    bar.className = 'v-bar';
+    bar.style.animationDelay = (Math.random()*0.8)+'s';
+    audioAnim.appendChild(bar);
+}
+
+// --- AUTO HIDE LOGIC ---
+function showControls() {
+    controls.classList.add('show');
+    playerArea.style.cursor = 'default';
+    video.style.cursor = 'default';
+    clearTimeout(controlTimer);
+    controlTimer = setTimeout(() => {
+        if (!video.paused) {
+            controls.classList.remove('show');
+            popMenu.style.display = 'none';
+            playerArea.style.cursor = 'none';
+            video.style.cursor = 'none';
+        }
+    }, 3000);
+}
+
+playerArea.addEventListener('mousemove', showControls);
+
+// Space Button to Play/Pause
+document.addEventListener('keydown', (e) => {
+    if (e.code === "Space") {
+        e.preventDefault(); // Prevent page scroll
+        togglePlay();
+    }
+});
+
+// Single Click to Play/Pause
+function handleVideoClick(e) {
+    if (e.target === video || e.target === playerArea) {
+        togglePlay(e);
+    }
+}
+
+// Double Click to Hide/Show immediately
+playerArea.addEventListener('dblclick', (e) => {
+    if(controls.classList.contains('show')) {
+        controls.classList.remove('show');
+        popMenu.style.display = 'none';
+        clearTimeout(controlTimer);
+    } else {
+        showControls();
+    }
+});
+
+function togglePlay(e) { 
+    if(e) e.stopPropagation(); 
+    if (video.paused) {
+        video.play();
+        document.getElementById('pp').className="fas fa-pause";
+    } else {
+        video.pause();
+        document.getElementById('pp').className="fas fa-play";
+        showControls(); 
+    }
+}
+
+video.onplaying = () => {
+    loader.style.display = 'none';
+    // Show visualizer if it's a radio/audio stream (height is 0)
+    audioAnim.style.display = (video.videoHeight === 0 && !video.paused) ? 'flex' : 'none';
+};
+video.onwaiting = () => loader.style.display = 'flex';
+
+function play(url, name, logo) {
+    loader.style.display = 'flex';
+    audioAnim.style.display = 'none';
+    document.getElementById('title').innerText = name;
+    document.getElementById('channelTitle').innerText = name;
+    document.getElementById('currentLogo').src = logo || "https://i.imgur.com/8Qf6Y0L.png";
+    
+    if(url.includes('.m3u8')){
+        hls.destroy(); hls = new Hls();
+        hls.loadSource(url); hls.attachMedia(video);
+        hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
+    } else { 
+        hls.destroy(); video.src = url; video.play(); 
+    }
+    document.getElementById('pp').className = "fas fa-pause";
+    render();
+}
+
+function showQualityMenu(e) {
+    e.stopPropagation();
+    showControls();
+    let html = `<button onclick="setQuality(-1)">Auto Quality</button>`;
+    if(hls.levels) hls.levels.forEach((l, i) => html += `<button onclick="setQuality(${i})">${l.height || i}p Quality</button>`);
+    popMenu.innerHTML = html;
+    popMenu.style.display = (popMenu.style.display !== 'flex') ? 'flex' : 'none';
+}
+
+function showScalingMenu(e) {
+    e.stopPropagation();
+    showControls();
+    popMenu.innerHTML = `
+        <button onclick="setScaling('contain')">Original</button>
+        <button onclick="setScaling('fill')">Fill Screen</button>
+        <button onclick="setScaling('cover')">Stretch 16:9</button>
+    `;
+    popMenu.style.display = (popMenu.style.display !== 'flex') ? 'flex' : 'none';
+}
+
+function setScaling(t) { video.style.objectFit = t; popMenu.style.display = 'none'; }
+function setQuality(i) { hls.currentLevel = i; popMenu.style.display = 'none'; }
+
+function render() {
+    let arr = isFavView ? JSON.parse(localStorage.getItem('iptv_pc_favs') || "[]") : allChannels;
+    listArea.innerHTML = "";
+    document.getElementById('count').innerText = arr.length + " CH";
+    arr.forEach(ch => {
+        const isActive = (video.src === ch.url || hls.url === ch.url);
+        const d = document.createElement('div');
+        d.className = `row ${isActive ? 'active' : ''}`;
+        d.innerHTML = `<img src="${ch.logo}" class="list-logo" onerror="this.src='https://i.imgur.com/8Qf6Y0L.png'"> <div class="name">${ch.name}</div>`;
+        d.onclick = () => play(ch.url, ch.name, ch.logo);
+        listArea.appendChild(d);
+    });
+}
+
+function switchTab(type, el) {
+    document.querySelectorAll('.tabs div').forEach(d => d.classList.remove('active-tab'));
+    el.classList.add('active-tab');
+    isFavView = (type === 'fav');
+    render();
+}
+
+async function toggleFull(e) {
+    if(e) e.stopPropagation();
+    if (!document.fullscreenElement) await playerArea.requestFullscreen();
+    else document.exitFullscreen();
+}
+
+// URL Playlist Fetch
+const playlistUrl = new URLSearchParams(location.search).get('playlist');
+if(playlistUrl) {
+    fetch(playlistUrl).then(r=>r.text()).then(data => {
+        let lines=data.split('\n'), c={};
+        lines.forEach(l => {
+            if(l.startsWith('#EXTINF')){
+                c.name = l.split(',')[1]?.trim();
+                c.logo = l.match(/tvg-logo="([^"]*)"/)?.[1];
+            } else if(l.startsWith('http')) {
+                c.url = l.trim(); allChannels.push({...c}); c={};
+            }
+        });
+        render();
+        if(allChannels[0]) play(allChannels[0].url, allChannels[0].name, allChannels[0].logo);
+    });
+}
+</script>
+</body>
+</html>                        <i class="fas fa-cog" onclick="showQualityMenu(event)"></i>
                         <i class="fas fa-sliders-h" onclick="showScalingMenu(event)"></i>
                         <i class="fas fa-expand" onclick="toggleFull(event)"></i>
                     </div>
