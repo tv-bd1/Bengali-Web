@@ -1,10 +1,31 @@
 #EXTM3U
 
-#EXTINF:-1 tvg-logo="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEirWpGtNoXEImEsBvrMeKO31Llaeu-4VWoQ35oZVF6gc98x9_rLkGj1B-wiv5P99v4ZxQpMl44RVSmDJ9IjkmQRZG5DWEvM7xBusVGuyRXWDFR0zJl1jWYphnTTpBlliwPu1WZ7V5bVeEM6E1TgtnK4IYFLyF3ttQoWRrzEaKSC9phcJo7nNMWhHFQRpg/s600/Nur_20251215_124106_0000.png" group-title="SPORTS" tvg-name="T Sports",T Sports
+#EXTINF:-1 tvg-logo="https://i.postimg.cc/xdRx82cG/20241005-165038.png" group-title="SPORTS" tvg-name="T Sports",T Sports
 https://amitomar.hoichoi.pro/bdixbd.net/index.fmp4.m3u8
 
-#EXTINF:-1 tvg-logo="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEh6Xn5XEZKnXQjFNVlz72LPbKGgZU-26pbBebhlk5PKguE3Hpn54269pWHmQ0Kwpen7UTWt-8CGB8fpLrPpaqgJpScRUttA5W7LCandh-X2kwdAdVyX_91aUauIOix0jsyBjOBXFFY_NYF0J0xVeTSgJWI5H10ICsKyaq0XKiEIteH0wxsLfBlbuxrmcw/s600/Nur_20251215_125630_0000.png" group-title="SPORTS" tvg-name="Sony Sports 2",Sony Sports 2
-https://tvsen3.aynaott.com/HsatAP9H/index.m3u8
+#EXTINF:-1 tvg-logo="https://i.postimg.cc/4N0T4pr4/20241005-170805.png" group-title="SPORTS" tvg-name="Star Sports 1",Star Sports 1
+https://allinonedev.top/apis/stream/amrbd20/stream.m3u8?id=2
+
+#EXTINF:-1 tvg-logo="https://i.postimg.cc/dtkxBpxJ/20241005-170916.png" group-title="SPORTS" tvg-name="Star Sports 2",Star Sports 2
+https://allinonedev.top/apis/stream/amrbd20/stream.m3u8?id=3
+
+#EXTINF:-1 tvg-logo="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSVb8098F5c6Uhm7ttRiUbhCzPyJD-U9jy3lsGl80Mr6SwaCwjMrYNWqsO_&s=10" group-title="SPORTS" tvg-name="A Sports",A Sports
+https://allinonedev.top/apis/stream/amrbd20/stream.m3u8?id=88
+
+#EXTINF:-1 tvg-logo="https://upload.wikimedia.org/wikipedia/en/e/e4/PTV_Sports.png" group-title="SPORTS" tvg-name="T Sports",PTV Sports HD
+https://allinonedev.top/apis/stream/amrbd20/stream.m3u8?id=92
+
+#EXTINF:-1 tvg-logo="https://images.toffeelive.com/images/program/603/logo/240x240/mobile_logo_237244001666780563.png" group-title="SPORTS" tvg-name="Sony Sports 1",Sony Sports 1
+https://allinonedev.top/apis/stream/amrbd20/stream.m3u8?id=74
+
+#EXTINF:-1 tvg-logo="https://images.toffeelive.com/images/program/604/logo/240x240/mobile_logo_093449001666780976.png" group-title="SPORTS" tvg-name="Sony Sports 2",Sony Sports 2
+https://allinonedev.top/apis/stream/amrbd20/stream.m3u8?id=29
+
+#EXTINF:-1 tvg-logo="https://images.toffeelive.com/images/program/606/logo/240x240/mobile_logo_689539001672145843.png" group-title="SPORTS" tvg-name="Sony Sports 5", Sony Sports 5
+https://allinonedev.top/apis/stream/amrbd20/stream.m3u8?id=101
+
+#EXTINF:-1 tvg-logo="https://i.postimg.cc/sXnL7pKn/20260221-081941.png" group-title="SPORTS" tvg-name="Eurosport HD",Eurosport HD
+https://allinonedev.top/apis/stream/amrbd20/stream.m3u8?id=40
 
 #EXTINF:-1 tvg-logo="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhYuknH82R_1f_efCjMsnWV2YdoJB0UhJUfAR0qPKCXn1KT7QzuW3DZGiOMV8DxritbSe_TM5QJeePu6NcBdxSqYetaI7UHW1BrCGMhzjx9Z0f7pTXN_qSAcPdfVTHjqPfVdYRLWCeVoed5vOsfsz75Us0P6DK5Eq3pssyVBjWs7gKM3-AgEKbuDfSqDw/s600/Nur_20251107_160039_0000.png" group-title="SPORTS" tvg-name="Geo Sports",Geo Super
 https://ml-pull-dvc-myco.io:2096/GEO_SUPER/tracks-v1a1/mono.ts.m3u8
